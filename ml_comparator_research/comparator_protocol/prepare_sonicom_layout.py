@@ -1,12 +1,9 @@
-"""Prepare SONICOM layouts expected by HRTFformer and RANF.
+"""Prepare SONICOM file layouts used by the comparator wrappers.
 
-The source dataset may be flattened or nested. This script creates a comparator
-work layout with:
-
-- HRTFformer-compatible nested folders under `HRTF_Datasets/SONICOM`
-- a `Sonicom` alias because the public HRTFformer code inconsistently uses
-  `Sonicom` and `SONICOM`
-- RANF-compatible flat SOFAs under `ranf_sonicom/sonicom/subjects`
+The source dataset may be flattened or nested. The current paper uses the
+RANF flat subject layout. The HRTF_Datasets layout is retained because the
+shared sparse-mask protocol follows the Hu/HRTFformer SONICOM convention and
+some optional external loaders expect that folder shape.
 
 Files are hard-linked where possible and copied otherwise.
 """

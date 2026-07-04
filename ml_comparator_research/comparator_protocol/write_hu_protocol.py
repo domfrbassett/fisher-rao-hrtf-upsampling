@@ -1,4 +1,4 @@
-"""Write the shared Hu/HRTFformer comparator protocol JSON."""
+"""Write the shared SONICOM comparator protocol JSON."""
 
 from __future__ import annotations
 

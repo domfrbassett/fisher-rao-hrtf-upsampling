@@ -1,4 +1,4 @@
-"""Run RANF under the shared Hu/HRTFformer split and masks.
+"""Run RANF under the shared SONICOM split and sparse masks.
 
 This wrapper avoids the public RANF LAP-specific split and retrieval-matrix
 assumptions. It leaves the RANF repository intact apart from the small optional

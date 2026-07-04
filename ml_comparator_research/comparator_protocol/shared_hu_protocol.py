@@ -1,7 +1,7 @@
-"""Shared Hu/HRTFformer comparator protocol utilities.
+"""Shared SONICOM sparse-mask protocol utilities.
 
-This module keeps the ML and non-ML comparators on the same sparse masks,
-subject split, and SONICOM source-position convention.
+The split and retained-direction masks follow the public Hu/HRTFformer
+SONICOM convention used as the common comparator protocol in the manuscript.
 """
 
 from __future__ import annotations
@@ -34,13 +34,13 @@ HU_MASK_GRID = {
 
 
 def hu_mask_az_el(retention: int) -> np.ndarray:
-    """Return Hu/HRTFformer sparse positions as [azimuth, elevation] degrees."""
+    """Return protocol sparse positions as [azimuth, elevation] degrees."""
     coords = HU_MASK_GRID[int(retention)]
     return np.array([[SONICOM_ROW_AZ_DEG[r], SONICOM_COL_EL_DEG[c]] for r, c in coords], dtype=float)
 
 
 def hrtfformer_seeded_split(subject_ids: Iterable[int], seed: int = 0, train_ratio: float = 0.8):
-    """Replicate the public HRTFformer seeded subject split convention."""
+    """Replicate the seeded SONICOM split convention used by the protocol."""
     subject_ids = list(subject_ids)
     rng = np.random.RandomState(seed)
     train_size = int(len(set(subject_ids)) * train_ratio)

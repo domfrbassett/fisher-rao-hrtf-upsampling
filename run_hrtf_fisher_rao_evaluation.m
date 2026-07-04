@@ -1,5 +1,5 @@
-﻿%% run_hrtf_fisher_rao_evaluation.m
-% Evaluation outline for HRTF spatial upsampling using:
+%% run_hrtf_fisher_rao_evaluation.m
+% Full evaluation pipeline for HRTF spatial upsampling. The script computes:
 %   - signal-level metrics
 %   - AMT Bayesian localisation metrics
 %   - Fisher-tensor AIRM discrepancy
@@ -57,9 +57,9 @@ cfg.toolbox.sfsRoot = fullfile(supdeqRoot, "thirdParty", "sfs-matlab-2.5.0");
 cfg.toolbox.triangleRayIntersectionRoot = fullfile(supdeqRoot, ...
     "thirdParty", "TriangleRayIntersection");
 
-% Evaluate the full measured SONICOM cohort. Earlier pilot runs used a
-% seeded 41-subject subset; with no external train/test split in the study,
-% the full deterministic comparison should use every available subject.
+% Default to the full measured SONICOM cohort. The comparator-protocol
+% wrapper overrides these fields with the held-out SONICOM split and sparse
+% masks used for the manuscript comparisons.
 cfg.randomSeed = 0;
 cfg.subjectPopulation = 1:203;
 cfg.subjectIds = cfg.subjectPopulation;
@@ -72,7 +72,7 @@ cfg.methods = ["SH", "None_NN", "OBTA_SH", "PC_SH", ...
 
 cfg.uniqueDirectionTolerance = 1e-10;
 cfg.fpsInitialIndex = [];         % Empty: select initial point from randomSeed
-cfg.samplingProvenance = "deterministic FPS substitute held fixed across methods";
+cfg.samplingProvenance = "default deterministic FPS sampling";
 cfg.comparatorProtocol.enabled = false;
 cfg.comparatorProtocol.path = string(getenv("FISHERRAO_COMPARATOR_PROTOCOL_JSON"));
 if strlength(cfg.comparatorProtocol.path) > 0

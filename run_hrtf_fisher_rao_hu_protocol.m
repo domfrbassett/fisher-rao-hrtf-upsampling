@@ -1,5 +1,5 @@
 % run_hrtf_fisher_rao_hu_protocol.m
-% Opt-in wrapper for the LAP/Hu sparse-mask comparator experiment used by
+% Wrapper for the shared SONICOM sparse-mask comparator experiment used by
 % the current manuscript.
 
 protocolPath = fullfile(fileparts(mfilename("fullpath")), ...
