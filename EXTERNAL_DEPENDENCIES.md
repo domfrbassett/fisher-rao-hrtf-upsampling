@@ -1,6 +1,6 @@
-# External Dependencies
+﻿# External Dependencies
 
-This repository does not vendor third-party datasets or toolboxes.
+The full evaluation requires datasets and toolboxes that are not part of this repository.
 
 ## Required For Full MATLAB Evaluation
 
@@ -21,10 +21,9 @@ The evaluation script supports the following environment overrides:
 
 ## Required For Machine-Learning Comparator Outputs
 
-The public paper repository contains wrappers, not cloned upstream repositories or trained outputs. Clone the external repositories separately and point the wrappers at them:
+The repository provides wrappers for the comparator protocol. The external method repositories and generated outputs are kept outside git:
 
 - RANF: Masuyama et al., Retrieval-Augmented Neural Field for HRTF upsampling/personalisation.
 - FSP-AE: Ito et al., spatial upsampling of HRTFs using a neural network conditioned on source position and frequency.
 
 Generated SOFA files, model checkpoints, and local training work directories should remain outside git.
-
