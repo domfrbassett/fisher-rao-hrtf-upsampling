@@ -39,3 +39,8 @@ python scripts/regenerate_local_threshold_plausibility_table.py
 ```
 
 The included summary CSVs regenerate the manuscript figures and TeX table fragments. Full recomputation from SOFA files requires the external datasets and MATLAB toolboxes listed above.
+
+## Data Availability
+
+If you are a researcher seeking to reproduce or extend the work, please contact the author. Generated outputs such as reconstructed SOFA files can be shared where licensing and dataset terms permit. Third-party datasets, toolbox code, and external model repositories should be obtained from their original sources.
+
