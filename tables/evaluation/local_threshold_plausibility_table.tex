@@ -1,0 +1,22 @@
+\begin{table}[ht!]
+\centering
+\caption{Population-median Fisher-predicted local $d'=1$ angular thresholds (degrees). Coordinate pairs are $(\mathrm{azimuth},\mathrm{elevation})$ in degrees. Lateral columns use horizontal-plane azimuthal displacements; vertical columns use elevational displacements in the frontal plane. The error column is the mean absolute deviation from the dense-reference row across the five projected thresholds.}
+\label{tab:local_threshold_plausibility}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrrrrr}
+\toprule
+Method & $N$ & Lat. $(0,0)$ & Lat. $(45,0)$ & Lat. $(90,0)$ & Vert. $(0,0)$ & Vert. $(0,45)$ & Mean abs. err. \\
+\midrule
+Measured & -- & 1.70 & 3.08 & 6.78 & 4.44 & 5.71 & 0.00 \\
+SUpDEq-MCA & 19 & 1.84 & 2.55 & 5.66 & 4.27 & 5.00 & 0.54 \\
+SUpDEq-MCA & 5 & 1.66 & 2.62 & 5.45 & 6.83 & 5.93 & 0.89 \\
+SUpDEq-Bary-MCA & 19 & 1.83 & 3.02 & 5.77 & 6.31 & 7.04 & 0.88 \\
+SUpDEq-Bary-MCA & 5 & 2.11 & 3.08 & 6.38 & 5.63 & 6.39 & 0.53 \\
+RANF & 19 & 1.71 & 2.86 & 6.90 & 4.42 & 6.43 & 0.22 \\
+RANF & 5 & 1.85 & 2.90 & 7.78 & 4.48 & 7.23 & 0.57 \\
+FSP-AE & 19 & 1.81 & 3.30 & 7.71 & 4.70 & 6.53 & 0.47 \\
+FSP-AE & 5 & 1.73 & 3.31 & 9.31 & 6.53 & 9.58 & 1.75 \\
+\bottomrule
+\end{tabular}
+\end{table}

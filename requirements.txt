@@ -1,0 +1,9 @@
+numpy
+pandas
+matplotlib
+scipy
+h5py
+netCDF4
+sofar
+spatialaudiometrics
+Pillow

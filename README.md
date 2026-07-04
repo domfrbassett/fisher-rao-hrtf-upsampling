@@ -1,0 +1,46 @@
+﻿# Fisher-Rao HRTF Upsampling Evaluation
+
+This repository contains the manuscript source and reproducibility code for a Fisher-information-based evaluation of HRTF spatial upsampling methods.
+
+The repository is intentionally lightweight. It includes the paper source, generated paper figures and tables, evaluation scripts, plotting scripts, compatibility shims, and wrapper code for the learning-based comparators used in the manuscript. It does not include SONICOM SOFA files, generated SOFA outputs, MATLAB tensor checkpoints, third-party toolbox distributions, or cloned upstream repositories.
+
+## Contents
+
+- `Fisher_Rao_HRTF_Evaluation.tex` and `Fisher_Rao_HRTF_Evaluation.pdf`: full manuscript.
+- `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.pdf`: two-column manuscript variant.
+- `run_hrtf_fisher_rao_evaluation.m`: MATLAB evaluation pipeline for signal metrics, Barumerli-style localisation metrics, and Fisher tensor discrepancy.
+- `run_hrtf_fisher_rao_hu_protocol.m`: wrapper for the 41-subject sparse-mask protocol used for the machine-learning comparator evaluation.
+- `scripts/`: Python scripts used to regenerate manuscript figures and tables from summary CSVs.
+- `figures/evaluation/` and `tables/evaluation/`: paper figures and table fragments used by the TeX source.
+- `ml_comparator_research/comparator_protocol/`: shared SONICOM protocol tools and the first-party RANF adapter. Upstream RANF code must be cloned separately.
+- `ml_comparator_research/fsp_ae_sonicom/`: first-party FSP-AE SONICOM adaptation wrapper.
+- `barumerli_compatibility/` and `sfs_compatibility/`: small compatibility shims used by the MATLAB evaluation scripts.
+
+## External Data And Dependencies
+
+The evaluation expects local copies of:
+
+- SONICOM HRTF SOFA files.
+- AMT / SOFA Toolbox for MATLAB.
+- SUpDEq and its third-party MATLAB dependencies.
+- The public RANF repository when reproducing RANF outputs.
+- The public FSP-AE repository code path used by `ml_comparator_research/fsp_ae_sonicom`.
+
+These are intentionally not vendored in this repository. Configure local paths through the environment variables documented in the scripts, or mirror the directory layout used in the comments of `run_hrtf_fisher_rao_evaluation.m`.
+
+## Rebuilding Paper Figures
+
+From the repository root:
+
+```powershell
+python scripts/generate_paper_assets.py
+python scripts/calculate_metric_correlations.py
+python scripts/regenerate_local_threshold_plausibility_table.py
+```
+
+The included summary CSVs are sufficient to regenerate the manuscript figures and TeX table fragments. Full recomputation from SOFA files requires the external datasets and MATLAB toolboxes described above.
+
+
+
+
+

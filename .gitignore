@@ -1,0 +1,46 @@
+﻿# MATLAB / LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.xdv
+__tmp*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local datasets and third-party dependencies
+dependencies/
+reference_papers/
+tmp/
+_fsp_ae_inspect/
+_hrtfformer_inspect/
+
+# Heavy/generated evaluation outputs
+results/**/metric_tensors/
+results/**/*.mat
+results/**/*.sofa
+results/**/*.wav
+results/**/*.pickle
+results/**/*.pkl
+results/**/*.pt
+results/**/*.pth
+results/**/*.npz
+
+# ML comparator cloned repositories and work products
+ml_comparator_research/**/repos/
+ml_comparator_research/**/work/
+ml_comparator_research/**/__pycache__/
+ml_comparator_research/**/outputs/
+

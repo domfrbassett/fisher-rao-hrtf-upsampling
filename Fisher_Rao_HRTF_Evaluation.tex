@@ -1,0 +1,684 @@
+﻿\documentclass{article}
+% !TeX program = pdflatex
+% !TeX encoding = UTF-8
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{placeins}
+\usepackage{xurl}
+\usepackage{hyperref}
+\geometry{a4paper, margin=1in}
+
+\title{On Using Fisher Information to Evaluate the Preservation of Spatial Discriminability in HRTF Upsampling}
+\author{Dominic Bassett}
+\date{June 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Head-related transfer function (HRTF) upsampling is commonly evaluated using
+signal-domain reconstruction errors, which do not directly quantify preservation
+of local spatial discriminability. This study defines a Fisher information
+evaluation on the sphere of source directions. Spatial gradients of positive
+spectral-gradient, interaural level-difference, and interaural time-difference
+features define a bivariate Fisher information tensor whose inverse gives the
+Cram\'er--Rao bound on the covariance of an unbiased local angular estimator.
+Reference and reconstructed tensors are compared using the affine-invariant
+Riemannian metric, which measures changes in the scale, anisotropy, and
+orientation of local discrimination ellipses. The evaluation uses a 41-subject
+SONICOM test cohort, four sparse-grid retention conditions, SUpDEq
+reconstructions, a retrieval-augmented neural field (RANF), and a
+frequency/source-position autoencoder (FSP-AE). Tensor discrepancies are reported with log-spectral distance,
+interaural level-difference error, and Bayesian localisation metrics. RANF gives
+the lowest tensor and signal-domain errors in the present protocol. Several
+interpolation methods retain finite spectral error while producing severe
+Fisher-tensor error at extreme sparsity. Projected \(d'=1\) thresholds
+translate selected tensors into angular units and show the expected increase in
+lateral threshold from frontal to lateral directions. The Fisher comparison
+measures reconstruction error in local spatial discriminability that is absent
+from signal fidelity metrics.
+\end{abstract}
+
+\section{Introduction and Background}
+
+Head-related transfer functions (HRTFs) encode the direction-dependent filtering imposed by the listener's head, torso, and pinnae. Dense individual HRTF measurements are expensive to obtain, so spatial upsampling is used to reconstruct a dense directional field from a sparse set of measured directions. Upsampling methods are usually evaluated with log-spectral distance (LSD), interaural level-difference error, interaural time-difference error, and localisation-model summaries. These quantities measure signal fidelity or predicted pointing performance, but they do not directly ask whether the reconstructed field preserves the listener's local ability to discriminate neighbouring directions.
+
+The relevant perceptual object is therefore not only the HRTF at a single direction, but the local variation of localisation cues over the sphere. Spatial discrimination studies often report lateral and polar acuity separately, as minimum audible angles or response variability along azimuthal and elevational dimensions. An early attempt to combine these dimensions was made by Starch \cite{Starch1905}, who represented horizontal and vertical discrimination measurements as ``auditory discrimination ellipses''. His construction is historically useful because it recognises that spatial acuity is bivariate and direction dependent. The construction differs from the present one in two important respects: the ellipses were assembled from separate horizontal and vertical measurements as axis-aligned summaries, rather than from a coupled local tensor, and the measurements used a 100-Hz electric-fork stimulus rather than broadband HRTF cues. They therefore did not include the cross-band spectral structure normally involved in elevation discrimination.
+
+Modern localisation data support the need for a coupled bivariate account. Carlile et al. \cite{Carlile1997} analysed localisation error distributions with spherical statistics and modelled them as either rotationally symmetric Fisher distributions or elliptical Kent distributions. In the pooled data, 50 of 76 target-location distributions (66\%) were Kent distributed. Their major axes were often not aligned with the azimuth/elevation coordinate axes, and the authors argued that off-midline response patterns were difficult to interpret as independent, orthogonal interaural and spectral cue-processing errors: the observed major axes did not follow the cones of confusion expected under an orthogonal cue-processing account. This observation is important for HRTF upsampling because a reconstruction may preserve average spectra while altering the anisotropy or orientation of the local discrimination structure. The Bayesian model of Barumerli et al. \cite{Barumerli2023} is calibrated against aggregate lateral, polar, and quadrant errors and provides realistic point estimates. However, its post-decision isotropic von Mises--Fisher scatter causes Monte Carlo response distributions to converge towards radial symmetry about those estimates, obscuring directional precision (Fig.~\ref{fig:kent_map_scatter}). A tensorial sensory analysis is therefore needed alongside localisation-model evaluation.
+
+Fisher information provides this tensorial description. Within auditory neuroscience, Fisher information has been used to relate binaural cue statistics and neural response properties. Harper and McAlpine \cite{Harper2004} analysed the population coding of interaural time differences (ITDs) in the mammalian brainstem and showed that neural tuning distributions can be organised to maximise Fisher information over naturally occurring cue ranges. Pav\~ao et al. \cite{Pavao2020} extended this analysis to human listeners and reported that the spatial distribution of Fisher information derived from HRTF statistics correlates with measured free-field ITD discrimination thresholds.
+
+This paper uses Fisher information to evaluate HRTF reconstruction and spatial upsampling. Let the sound-source direction be \(\mathbf{r}\in\mathbb{S}^2\), and let \(\boldsymbol{\xi}\in\mathbb{R}^{2}\) denote local angular coordinates in an orthonormal tangent basis at \(\mathbf{r}\). Fisher information provides a local measure of stimulus discriminability on these coordinates. For any unbiased local estimator \(\hat{\boldsymbol{\xi}}\), provided that the Fisher information matrix is nonsingular, the Cram\'er--Rao bound (CRB) states
+\begin{equation}
+\operatorname{Cov}(\hat{\boldsymbol{\xi}}) \succeq \mathbf{g}(\mathbf{r})^{-1},
+\end{equation}
+where \(\mathbf{g}(\mathbf{r})\in\mathbb{R}^{2\times2}\) is the Fisher information matrix evaluated on the local tangent plane. Thus, under the assumed cue model, \(\mathbf{g}(\mathbf{r})^{-1}\) is the Cram\'er--Rao bound on the covariance of any unbiased local angular estimator \cite{Dayan2001}.
+
+The FIM defines a Riemannian metric on the parameter manifold \cite{Rao1945}. Its squared infinitesimal distance is
+\begin{equation}
+ds^2 = d\boldsymbol{\xi}^T \mathbf{g}(\mathbf{r}) d\boldsymbol{\xi}.
+\end{equation}
+For the cue vector \(\mathbf q\), assume
+\(\mathbf q\mid\boldsymbol{\xi}\sim
+\mathcal N(\boldsymbol\mu(\boldsymbol\xi),\boldsymbol\Sigma)\),
+with direction-independent internal-noise covariance \(\boldsymbol\Sigma\).
+For two nearby directions separated by \(\delta\boldsymbol\xi\), equal-covariance
+Gaussian signal detection theory gives
+\(d'^2=\Delta\boldsymbol\mu^T\boldsymbol\Sigma^{-1}
+\Delta\boldsymbol\mu\). Linearising the cue mean as
+\(\Delta\boldsymbol\mu\approx\mathbf J\delta\boldsymbol\xi\) yields
+\begin{equation}
+d'^2 \approx \delta\boldsymbol{\xi}^T
+\underbrace{\mathbf J^T\boldsymbol\Sigma^{-1}\mathbf J}_{\mathbf g(\mathbf r)}
+\delta\boldsymbol{\xi}.
+\end{equation}
+Writing \(\delta\boldsymbol{\xi}=\rho\mathbf{u}\), where \(\mathbf{u}\in\mathbb{R}^{2}\) is a unit tangent direction, gives the angular displacement predicted to reach \(d'=1\):
+\begin{equation}
+\rho_{d'=1}(\mathbf{r},\mathbf{u})
+=
+\left(
+\mathbf{u}^T \mathbf{g}(\mathbf{r}) \mathbf{u}
+\right)^{-1/2}.
+\end{equation}
+This is the scalar threshold reported later for selected lateral and vertical directions. The CRB statement above gives the covariance bound \(\mathbf g(\mathbf r)^{-1}\); its eigenvectors are the same as those of \(\mathbf g(\mathbf r)\), with reciprocal eigenvalues. Thus the principal axes of the \(d'=1\) contour are also the principal axes of the CRB covariance ellipse. The resulting ellipse is the analytical discrimination ellipse implied by the observer model, rather than a concatenation of separately measured lateral and polar thresholds; Fig.~\ref{fig:sonicom_kent} shows the corresponding SONICOM median ellipses.
+
+The cue model uses positive spectral-gradient, interaural level-difference, and transformed interaural time-difference features following the sensory evidence used by Barumerli et al. \cite{Barumerli2023}. The cue-family noise covariance is diagonal, so monaural spectral, ILD, and ITD noise are treated as independent at the feature level. This does not make the spatial tensor diagonal. For diagonal \(\boldsymbol\Sigma\), the off-diagonal tensor entry is
+\(g_{12}=\sum_i \sigma_i^{-2}(\partial_1\mu_i)(\partial_2\mu_i)\).
+It is generally nonzero because cue gradients need not align with the tangent
+axes. Setting \(g_{12}=0\) would force the discrimination ellipses to remain
+axis-aligned and remove cross-dimensional sensitivity between lateral and polar
+displacements. The analysis therefore retains the full tensor.
+
+The evaluation compares the Fisher tensors of measured and reconstructed HRTFs together with signal-domain errors and Bayesian observer simulations. Fisher information measures how the localisation cues vary between neighbouring directions, so reconstructions with similar spectral error can produce different Fisher tensors.
+
+Reference and reconstructed Fisher tensors are compared using the affine-invariant Riemannian metric (AIRM) on symmetric positive-definite matrices. The resulting discrepancy measures differences in the size, shape, and orientation of local discrimination ellipses. It tests whether an upsampling method preserves the local discriminability represented by the measured Fisher tensor field.
+
+\section{Cue Feature Extraction}
+Let the source direction be represented by a unit Cartesian vector
+\[
+\mathbf{r}=[r_x,r_y,r_z]^T\in\mathbb{S}^{2}.
+\]
+For ear \(c\in\{L,R\}\), let \(A_c(f_k,\mathbf{r})\) and \(\widehat{A}_c(f_k,\mathbf{r})\) denote the target and reconstructed HRTF magnitudes at frequency bin \(f_k\), \(k\in\{1,\ldots,F\}\). Let \(D_c(f_k,\mathbf{r})\) and \(\widehat{D}_c(f_k,\mathbf{r})\) denote their corresponding directional transfer function (DTF) magnitudes after applying the same common-transfer-function (CTF) removal convention. DTF cues are used for the Fisher analysis; raw HRTF magnitudes are retained for signal-domain error metrics.
+
+Three cue functions define the Fisher analysis. They are extracted at measured directions and represented by smooth spherical-harmonic fields, whose spatial derivatives define the tensor.
+
+\subsection{Positive Spectral-Gradient Features (PGE)}
+Based on the sagittal-plane localisation model of Baumgartner et al. \cite{Baumgartner2014}, positive spectral gradients are isolated across auditory bands. The implementation obtains these PGE features directly through AMT \path{barumerli2023_featureextraction} using its \path{pge} feature convention: the DTF profile is analysed in auditory bands and only positive cross-band differences are retained. Let
+\[
+ m_c[b,\mathbf{r}] = 20\log_{10}\bigl(D_c(f_b,\mathbf{r}) + \varepsilon_A\bigr), \qquad c \in \{L,R\},
+\]
+where \(f_b\) denotes the centre frequency of the \(b\)-th auditory band and \(\varepsilon_A>0\) prevents the logarithm of zero. The positive spectral-gradient feature is
+\begin{equation}
+ S_c[b,\mathbf{r}] =
+\max\!\left(m_c[b+d,\mathbf{r}]-m_c[b,\mathbf{r}],\,0\right),
+\qquad b=1,\ldots,B-d,
+\end{equation}
+with units of dB over the selected approximately one-ERB interval. As in Baumgartner et al., \(d \in \mathbb{Z}^+\) is the tonotopic offset between the compared bands. A practical ERB bandwidth model is used to determine this offset:
+\begin{equation}
+\operatorname{ERB}(f_k) = 24.7\left(4.37\frac{f_k}{1000} + 1\right).
+\end{equation}
+Given the frequency spacing \(\Delta f_b=f_{b+1}-f_b\), the offset is selected as
+\begin{equation}
+ d = \operatorname{clip}\!\left(\left\lfloor \alpha\,\operatorname{mean}\!\left(\frac{\operatorname{ERB}(f_{2:B})}{\Delta f_{1:B-1}}\right)\right\rceil, 1, B-1\right),
+\end{equation}
+where \(\alpha=1\) corresponds to an approximately one-ERB comparison. The implementation linearly interpolates FFT-bin DTF magnitudes onto \(B=27\) ERB-rate-spaced centre frequencies over \(0.7\)--\(18\,\mathrm{kHz}\) before extracting these features.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{PGE_Reconstruction_7634Hz.png}
+    \caption[Spherical-harmonic reconstruction of a positive spectral-gradient field]{Illustration of a target positive spectral-gradient field at 7634 Hz (top row) and a continuous spherical-harmonic reconstruction with \(N_{\max}=6\) (bottom row), derived from a 12.5\% spatial-retention grid. White markers indicate retained sample directions.}
+    \label{fig:pge_reconstruction}
+\end{figure}
+
+\subsection{Interaural Level Difference (ILD)}
+The broadband ILD is defined as the log-ratio of average spectral power across the two ears:
+\begin{equation}
+\operatorname{ILD}(\mathbf{r})
+= 10\log_{10}\!\left(
+\frac{\frac{1}{F}\sum_{k=1}^{F} D_L(f_k,\mathbf{r})^2 + \varepsilon_P}
+     {\frac{1}{F}\sum_{k=1}^{F} D_R(f_k,\mathbf{r})^2 + \varepsilon_P}
+\right).
+\end{equation}
+Here \(\varepsilon_P>0\) is the power-domain numerical floor used for both target and reconstructed cues.
+
+\subsection{Interaural Time Difference (ITD)}
+
+Let \(a_L(t,\mathbf{r})\) and \(a_R(t,\mathbf{r})\) denote the left- and right-ear HRIRs at direction \(\mathbf{r}\). For HRTF sets represented as HRIRs, or as complex responses from which HRIRs are obtained by inverse transformation, the broadband ITD field is estimated from the binaural impulse responses:
+\begin{equation}
+\tau_{\mathrm{ext}}(\mathbf{r})
+=
+\mathcal{E}_{\mathrm{ITD}}
+\!\left[
+ a_L(t,\mathbf{r}),a_R(t,\mathbf{r})
+\right],
+\end{equation}
+where \(\mathcal{E}_{\mathrm{ITD}}\) is the Barumerli feature extractor's broadband envelope-correlation estimator, implemented as AMT \path{itdestimator} with the \path{MaxIACCe} convention. For the reported methods, reference and reconstructed HRTFs define separate delay fields,
+\begin{equation}
+\tau(\mathbf{r})=\tau_{\mathrm{ext}}(\mathbf{r}),
+\qquad
+\hat{\tau}(\mathbf{r})=\hat{\tau}_{\mathrm{ext}}(\mathbf{r}),
+\end{equation}
+so that timing errors contribute to the Fisher-tensor comparison.
+
+\noindent The delay is mapped onto the transformed ITD scale used by the observer model \cite{Reijniers2014,Barumerli2023}:
+\begin{equation}
+T(\tau)
+=
+\operatorname{sgn}(\tau)
+\cdot
+\frac{
+\ln\!\left(32.5\times 10^{-6}+0.095|\tau|\right)
+-
+\ln\!\left(32.5\times 10^{-6}\right)
+}{0.095}.
+\end{equation}
+This is the Reijniers et al. variance-stabilising transformation for
+heteroscedastic ITD discrimination: empirical broadband ITD JNDs are modelled
+as increasing approximately linearly with \(|\tau|\), and \(T(\tau)\) is the
+corresponding accumulated-JND coordinate. A constant Gaussian noise term on
+this transformed coordinate therefore represents constant uncertainty in ITD
+JND units, not constant uncertainty in seconds.
+The ITD cue used in the spatial cue vector is therefore
+\begin{equation}
+\operatorname{ITD}(\mathbf{r}) = T\!\left(\tau(\mathbf{r})\right),
+\qquad
+\widehat{\operatorname{ITD}}(\mathbf{r}) = T\!\left(\hat{\tau}(\mathbf{r})\right).
+\end{equation}
+
+\section{Continuous Spatial Gradients and Tangent Projection}
+Let the monaural spectral feature vector collect the \(B-d\) PGE values for both ears,
+\[
+\mathbf{s}(\mathbf{r})\in\mathbb{R}^{N_S},
+\qquad N_S=2(B-d).
+\]
+The full spatial cue vector is
+\[
+\mathbf{q}(\mathbf{r})
+=
+\bigl[\mathbf{s}(\mathbf{r})^T,\,\operatorname{ILD}(\mathbf{r}),\,\operatorname{ITD}(\mathbf{r})\bigr]^T
+\in\mathbb{R}^{M},
+\qquad M=N_S+2.
+\]
+For a reconstructed HRTF field, the same feature extraction gives
+\(\widehat{\mathbf{q}}(\mathbf{r})\) on the same spatial grid.
+
+\subsection{Spherical Harmonic Representation}
+Each scalar cue component is represented on the sphere using a truncated real spherical-harmonic (SH) basis of maximum degree \(N_{\max}\). Let
+\[
+\mathbf{Y}(\mathbf{r}) \in \mathbb{R}^{C}, \qquad C=(N_{\max}+1)^2,
+\]
+be the vector of basis functions evaluated at \(\mathbf{r}\). Cue samples at fitting directions \(\{\mathbf{r}_n\}_{n=1}^{N_{\mathrm{fit}}}\) are collected in
+\[
+\mathbf{Q}
+=
+[\mathbf{q}(\mathbf{r}_1),\ldots,\mathbf{q}(\mathbf{r}_{N_{\mathrm{fit}}})]^T
+\in\mathbb{R}^{N_{\mathrm{fit}}\times M},
+\]
+and the SH design matrix is defined as
+\[
+\mathbf{Y}_{\mathrm{fit}}
+=
+[\mathbf{Y}(\mathbf{r}_1),\ldots,\mathbf{Y}(\mathbf{r}_{N_{\mathrm{fit}}})]^T
+\in\mathbb{R}^{N_{\mathrm{fit}}\times C}.
+\]
+The SH coefficient matrix \(\mathbf{B}\in\mathbb{R}^{C\times M}\) is obtained by least squares:
+\begin{equation}
+\mathbf{B} = \mathbf{Y}_{\mathrm{fit}}^{\dagger}\mathbf{Q},
+\end{equation}
+where \(\mathbf{Y}_{\mathrm{fit}}^{\dagger}\) denotes the Moore--Penrose pseudoinverse. When \(\mathbf{Y}_{\mathrm{fit}}\) has full column rank,
+\begin{equation}
+\mathbf{Y}_{\mathrm{fit}}^{\dagger}
+=
+\left(\mathbf{Y}_{\mathrm{fit}}^T\mathbf{Y}_{\mathrm{fit}}\right)^{-1}
+\mathbf{Y}_{\mathrm{fit}}^T.
+\end{equation}
+The smooth cue field is
+\begin{equation}
+\widetilde{\mathbf{q}}(\mathbf{r}) = \mathbf{B}^{T}\mathbf{Y}(\mathbf{r}).
+\end{equation}
+For the reconstructed HRTF field, define
+\[
+\widehat{\mathbf{Q}}
+=
+[\widehat{\mathbf{q}}(\mathbf{r}_1),\ldots,\widehat{\mathbf{q}}(\mathbf{r}_{N_{\mathrm{fit}}})]^T .
+\]
+It is fitted with the same \(N_{\max}\), basis convention, and fitting grid:
+\begin{equation}
+\widehat{\mathbf{B}} = \mathbf{Y}_{\mathrm{fit}}^{\dagger}\widehat{\mathbf{Q}},
+\qquad
+\widehat{\widetilde{\mathbf{q}}}(\mathbf{r})
+=
+\widehat{\mathbf{B}}^T\mathbf{Y}(\mathbf{r}).
+\end{equation}
+Fixing this smoothing operation is necessary because its bandwidth affects the measured spatial gradients.
+
+\subsection{Continuous Spatial Derivatives}
+
+The SH representation provides a smooth approximation to each cue field, allowing spatial derivatives to be evaluated at arbitrary directions. Let
+\[
+\mathbf{J}_{\mathbf{Y}}(\mathbf{r}) =
+\nabla_{\mathbf{r}}\mathbf{Y}(\mathbf{r})
+\in \mathbb{R}^{C\times 3}.
+\]
+The Cartesian cue Jacobian is then
+\begin{equation}
+\mathbf{J}_{\mathrm{Cart}}(\mathbf{r})
+=
+\nabla_{\mathbf{r}}\widetilde{\mathbf{q}}(\mathbf{r})
+=
+\mathbf{B}^{T}\mathbf{J}_{\mathbf{Y}}(\mathbf{r}).
+\end{equation}
+
+\subsection{Local Tangent Plane Projection}
+Because source direction lies on the unit sphere, only tangential variations are relevant for local discriminability. The unit normal at \(\mathbf{r}\) is \(\mathbf{r}\) itself. A local orthonormal tangent basis \(\mathbf{V}(\mathbf{r})=[\mathbf{u}_1,\mathbf{u}_2]\in\mathbb{R}^{3\times2}\) is defined by selecting an auxiliary vector
+\[
+\mathbf{h}_{\mathrm{aux}} =
+\begin{cases}
+ [0,1,0]^T, & \text{if } |r_z| > 0.9,\\
+ [0,0,1]^T, & \text{otherwise},
+\end{cases}
+\]
+and then setting
+\begin{equation}
+\mathbf{u}_1 = \frac{\mathbf{h}_{\mathrm{aux}}\times \mathbf{r}}{\|\mathbf{h}_{\mathrm{aux}}\times \mathbf{r}\|_2},
+\qquad
+\mathbf{u}_2 = \mathbf{r} \times \mathbf{u}_1.
+\end{equation}
+The same basis is used for target and reconstruction at each direction. Since \(\mathbf{r}\) is unit length, its tangent coordinates describe infinitesimal angular displacement in radians. The tangent Jacobian is
+\begin{equation}
+\mathbf{J}_{\mathrm{tan}}(\mathbf{r}) =
+\mathbf{J}_{\mathrm{Cart}}(\mathbf{r})\,\mathbf{V}(\mathbf{r})
+\in \mathbb{R}^{M\times2}.
+\end{equation}
+
+\section{Construction of the Fisher--Rao Metric Tensor}
+For the Fisher analysis, cue observations are modelled locally as Gaussian with mean \(\widetilde{\mathbf{q}}(\mathbf{r})\) and direction-independent covariance \(\boldsymbol{\Sigma}\). Following the independent-feature covariance used by Barumerli et al. \cite{Barumerli2023}, cue-family noise is represented by the block-diagonal matrix
+\begin{equation}
+\boldsymbol{\Sigma} = 
+\begin{bmatrix}
+\sigma_{\mathrm{mon}}^2 \mathbf{I}_{N_S} & \mathbf{0} & \mathbf{0} \\
+\mathbf{0}^T & \sigma_{\mathrm{ILD}}^2 & 0 \\
+\mathbf{0}^T & 0 & \sigma_{\mathrm{ITD}}^2
+\end{bmatrix},
+\end{equation}
+where \(\mathbf{I}_{N_S}\) is the \(N_S\times N_S\) identity matrix. The off-diagonal entries of \(\mathbf{g}(\mathbf{r})\) are the precision-weighted inner products between tangent cue gradients.
+
+The standard deviations set the relative cue weights. The analysis uses \(\sigma_{\mathrm{mon}}=1.25\,\mathrm{dB}\), \(\sigma_{\mathrm{ILD}}=1\,\mathrm{dB}\), and \(\sigma_{\mathrm{ITD}}=0.569\) on the transformed \(T(\tau)\) scale. The ITD value is the Reijniers et al. discrimination-derived standard deviation on the transformed JND coordinate \cite{Reijniers2014}. The monaural and ILD terms are retained as fixed Barumerli-family observer weights for the PGE and broadband-ILD feature convention \cite{Barumerli2023}. They define a reproducible generic observer for comparing reconstructions; they are not refitted here to behavioural thresholds. The Bayesian evaluation additionally includes the observer prior, decision rule, and response stage.
+
+For the diagonal Gaussian covariance defined by these standard deviations, the Fisher information matrix on the two-dimensional tangent space is
+\begin{equation}
+\mathbf{g}(\mathbf{r}) =
+\mathbf{J}_{\mathrm{tan}}(\mathbf{r})^T\,
+\boldsymbol{\Sigma}^{-1}\,
+\mathbf{J}_{\mathrm{tan}}(\mathbf{r})
+\in \mathbb{R}^{2\times2}.
+\end{equation}
+Let \(\mathbf{j}_{u}(\mathbf{r})=\nabla_{\mathrm{tan}}u(\mathbf{r})\in\mathbb{R}^{2}\) denote the tangent gradient of a scalar cue \(u\). The FIM can be written explicitly as
+\begin{equation}
+\mathbf{g}(\mathbf{r})
+=
+\frac{1}{\sigma_{\mathrm{mon}}^2}
+\sum_{c\in\{L,R\}}\sum_{b=1}^{B-d}
+\mathbf{j}_{S_c[b]}(\mathbf{r})\mathbf{j}_{S_c[b]}(\mathbf{r})^T
++
+\frac{1}{\sigma_{\mathrm{ILD}}^2}
+\mathbf{j}_{\mathrm{ILD}}(\mathbf{r})\mathbf{j}_{\mathrm{ILD}}(\mathbf{r})^T
++
+\frac{1}{\sigma_{\mathrm{ITD}}^2}
+\mathbf{j}_{\mathrm{ITD}}(\mathbf{r})\mathbf{j}_{\mathrm{ITD}}(\mathbf{r})^T .
+\end{equation}
+Thus, \(\mathbf{g}\) is positive semidefinite and is positive definite only where the weighted cue gradients span both tangent directions. Strict positive definiteness for tensor comparison is supplied by the regularisation defined below.
+
+Figures~\ref{fig:sonicom_kent} and~\ref{fig:kent_map_scatter} place the two observer summaries side by side: the CRB ellipses retain the local tensor anisotropy, whereas the Barumerli MAP response-error distributions show the more radially symmetric covariance induced by the response-scatter stage.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{Sonicom_Kent.png}
+    \caption[SONICOM Fisher discriminability ellipses from the Cram\'er--Rao bound]{Local 95\% confidence auditory discrimination ellipses derived from the Cram\'er--Rao bound. Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the population median of the SONICOM dataset (\(N=245\)).}
+    \label{fig:sonicom_kent}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{Kent_MC_MAP_1x4.png}
+    \caption[Predicted pointing-error covariance from the Barumerli MAP estimator]{Predicted pointing error from a converged Monte Carlo simulation of the maximum a posteriori estimator of Barumerli et al. \cite{Barumerli2023}. Ellipses represent local covariance matrices, scaled to one standard deviation along each principal axis. Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the population median of the SONICOM dataset (\(N=245\)).}
+    \label{fig:kent_map_scatter}
+\end{figure}
+
+\section{AIRM Tensor Discrepancy}
+The target and reconstructed Fisher tensors need not be strictly positive definite at every direction. The comparison therefore uses their regularised forms
+\begin{equation}
+\mathbf{g}_{\eta}(\mathbf{r})=\mathbf{g}(\mathbf{r})+\eta\mathbf{I}_2,
+\qquad
+\widehat{\mathbf{g}}_{\eta}(\mathbf{r})
+=
+\widehat{\mathbf{g}}(\mathbf{r})+\eta\mathbf{I}_2,
+\end{equation}
+where \(\eta=10^{-6}\) is applied to both fields. The AIRM distance on symmetric positive-definite matrices is
+\begin{equation}
+ d_{\mathrm{AIRM}}(\mathbf{g}_{\eta},\widehat{\mathbf{g}}_{\eta})
+ =
+ \left\|\log\!\left(
+ \mathbf{g}_{\eta}^{-1/2}
+ \widehat{\mathbf{g}}_{\eta}
+ \mathbf{g}_{\eta}^{-1/2}
+ \right)\right\|_F.
+\end{equation}
+For a \(2\times2\) SPD matrix pair, let \(\lambda_1,\lambda_2>0\) be the generalised eigenvalues of \((\widehat{\mathbf{g}}_{\eta},\mathbf{g}_{\eta})\). Then
+\begin{equation}
+ d_{\mathrm{AIRM}}(\mathbf{g}_{\eta},\widehat{\mathbf{g}}_{\eta})
+ =
+ \sqrt{\log^2(\lambda_1)+\log^2(\lambda_2)}.
+\end{equation}
+Equivalently, the \(\lambda_i\) are eigenvalues of \(\mathbf{g}_{\eta}^{-1}\widehat{\mathbf{g}}_{\eta}\), although that product need not be symmetric.
+
+\subsection{Diagonal Regularisation}
+AIRM is undefined for singular tensors. The value \(\eta=10^{-6}\), in angular-coordinate tensor units, is therefore added to the diagonal of every reference and reconstructed tensor.
+
+\subsection{Cholesky Congruence Form}
+Let \(\mathbf{g}_{\eta}=\mathbf{L}\mathbf{L}^T\) be the Cholesky factorisation of the regularised target tensor. The matrix inside the logarithm has the same eigenvalues as
+\begin{equation}
+\mathbf{S}=\mathbf{L}^{-1}\widehat{\mathbf{g}}_{\eta}\mathbf{L}^{-T}.
+\end{equation}
+Before factorisation, each tensor is replaced by its symmetric part. The implementation also symmetrises \(\mathbf S\) before computing its eigenvalues with a Hermitian eigensolver:
+\begin{equation}
+\mathbf{S}\leftarrow\frac{1}{2}\left(\mathbf{S}+\mathbf{S}^T\right).
+\end{equation}
+The mean AIRM discrepancy over an evaluation grid \(\{\mathbf{r}_n\}_{n=1}^{N_{\mathrm{eval}}}\) is
+\begin{equation}
+\mathcal{E}_{\mathrm{AIRM}} =
+\frac{1}{N_{\mathrm{eval}}}\sum_{n=1}^{N_{\mathrm{eval}}}
+\left\|\log\boldsymbol{\lambda}^{(n)}\right\|_2,
+\end{equation}
+where \(\boldsymbol{\lambda}^{(n)}\) contains the two eigenvalues of the congruence-transformed matrix at direction \(\mathbf{r}_n\).
+Eigenvalues below machine precision are set to machine precision before taking the logarithm.
+
+\section{Evaluation Metrics}
+AIRM measures the distance between reference and reconstructed Fisher tensors. Signal-domain metrics measure physical reconstruction error, and the Bayesian-observer metrics summarise simulated localisation responses.
+
+\subsection{Log-Spectral Distortion (LSD)}
+Using the HRTF-magnitude notation defined above, the binaural log-spectral distortion is
+\begin{equation}
+\operatorname{LSD}
+= \frac{1}{N_{\mathrm{eval}}}\sum_{n=1}^{N_{\mathrm{eval}}}
+\sqrt{
+\frac{1}{2W}\sum_{c\in\{L,R\}}\sum_{w=1}^{W}
+\left(
+20\log_{10}
+\frac{A_c(f_w,\mathbf{r}_n)+\varepsilon_A}
+{\widehat{A}_c(f_w,\mathbf{r}_n)+\varepsilon_A}
+\right)^2
+}.
+\end{equation}
+LSD serves as the principal signal-domain metric because it directly measures spectral magnitude agreement. For band-limited reconstructions, the sum over \(k\) is restricted to the reconstructed spectral support; FSP-AE is evaluated over 20 Hz--16 kHz, matching its published configuration.
+
+\subsection{Interaural Level Difference Error}
+ILD error measures binaural level reconstruction. Define the frequency-averaged HRTF ILD
+\begin{equation}
+\operatorname{ILD}_{\mathrm{HRTF}}(\mathbf{r})
+=
+\frac{1}{F}\sum_{k=1}^{F}
+20\log_{10}\!\left(
+\frac{A_L(f_k,\mathbf{r})+\varepsilon_A}
+     {A_R(f_k,\mathbf{r})+\varepsilon_A}
+\right),
+\end{equation}
+with reconstruction error
+\begin{equation}
+\mathcal{E}_{\mathrm{ILD}}
+=
+\frac{1}{N_{\mathrm{eval}}}\sum_{n=1}^{N_{\mathrm{eval}}}
+\left|
+\operatorname{ILD}_{\mathrm{HRTF}}(\mathbf{r}_n)
+-\widehat{\operatorname{ILD}}_{\mathrm{HRTF}}(\mathbf{r}_n)
+\right|.
+\end{equation}
+This signal-domain quantity differs from the broadband DTF power-ratio ILD cue used in the Fisher tensor. One measures error in the binaural level field; the other contributes its spatial derivatives to the Fisher matrix.
+
+\subsection{Fisher-Tensor AIRM Discrepancy}
+The primary tensor metric is the mean AIRM discrepancy between regularised target and reconstructed Fisher tensors:
+\begin{equation}
+\mathcal{E}_{\mathrm{AIRM}}
+=
+\frac{1}{N_{\mathrm{eval}}}\sum_{n=1}^{N_{\mathrm{eval}}}
+ d_{\mathrm{AIRM}}\bigl(
+\mathbf{g}_{\eta}(\mathbf{r}_n),
+\widehat{\mathbf{g}}_{\eta}(\mathbf{r}_n)
+\bigr).
+\end{equation}
+This metric compares the anisotropy, orientation, and scale of the Fisher tensors formed from the spatial cue gradients.
+
+The scalar AIRM score is supplemented by tensor summaries. Let \(\mu_1(\mathbf{r})\geq\mu_2(\mathbf{r})>0\) be the eigenvalues of \(\mathbf{g}_{\eta}(\mathbf{r})\), and let \(\mathbf{v}_1(\mathbf{r})\) be its principal information direction. The reported summaries are
+\begin{align}
+\mathcal{E}_{\mathrm{det}} &=
+\frac{1}{N_{\mathrm{eval}}}\sum_n
+\left|\log\frac{\det\widehat{\mathbf{g}}_{\eta}(\mathbf{r}_n)}
+{\det\mathbf{g}_{\eta}(\mathbf{r}_n)}\right|, \\
+\mathcal{E}_{\mathrm{anis}} &=
+\frac{1}{N_{\mathrm{eval}}}\sum_n
+\left|\log\frac{\hat{\mu}_1(\mathbf{r}_n)/\hat{\mu}_2(\mathbf{r}_n)}
+{\mu_1(\mathbf{r}_n)/\mu_2(\mathbf{r}_n)}\right|, \\
+\mathcal{E}_{\mathrm{orient}} &=
+\frac{1}{|\mathcal{R}_{\mathrm{aniso}}|}
+\sum_{\mathbf{r}_n\in\mathcal{R}_{\mathrm{aniso}}}
+\arccos\left(
+\left|\widehat{\mathbf{v}}_1(\mathbf{r}_n)^T\mathbf{v}_1(\mathbf{r}_n)\right|
+\right),
+\end{align}
+where \(\mathcal{R}_{\mathrm{aniso}}\) contains the directions for which both tensors satisfy \(\mu_1/\mu_2 \geq 1.10\). The orientation error is reported in degrees. The determinant, anisotropy, and orientation summaries decompose the changes measured jointly by AIRM.
+
+\subsection{Bayesian Localisation Metrics}
+A Bayesian localisation model supplies lateral RMS error, local polar RMS error, and quadrant error \cite{Middlebrooks1999,Barumerli2023}. Let \(\ell_i,\varphi_i\) denote the lateral and polar target angles and \(\widetilde{\ell}_i,\widetilde{\varphi}_i\) their simulated responses for \(N_{\mathrm{trial}}\) responses, where \(N_{\mathrm{trial}}\) includes the simulated repetitions over the dense target-direction set. For the polar-error target set \(\mathcal{P}\), define local polar responses by
+\[
+\mathcal{A}=
+\left\{i\in\mathcal{P}:
+\left|\operatorname{wrap}(\widetilde{\varphi}_i-\varphi_i)\right|<90^\circ
+\right\}.
+\]
+The reported metrics are
+\begin{equation}
+\operatorname{Lateral~RMS}=
+\sqrt{\frac{1}{N_{\mathrm{trial}}}
+\sum_{i=1}^{N_{\mathrm{trial}}}
+(\widetilde{\ell}_i-\ell_i)^2},
+\end{equation}
+\begin{equation}
+\operatorname{Local~Polar~RMS}=
+\sqrt{\frac{1}{|\mathcal{A}|}
+\sum_{i\in\mathcal{A}}
+\operatorname{wrap}(\widetilde{\varphi}_i-\varphi_i)^2},
+\end{equation}
+\begin{equation}
+\operatorname{Quadrant~Error}
+=
+\left(1-\frac{|\mathcal{A}|}{|\mathcal{P}|}\right)\times100.
+\end{equation}
+The implementation uses AMT \path{barumerli2023} with DTF feature extraction, maximum a posteriori estimation, and \(R=300\) simulated repetitions per target direction. Its parameters are \(\sigma_{\mathrm{ITD}}=0.569\), \(\sigma_{\mathrm{ILD}}=1\), \(\sigma_{\mathrm{spectral}}=4\), \(\sigma_{\mathrm{prior}}=11.5\), and \(\sigma_{\mathrm{motor}}=14\). The resulting metrics summarise simulated pointing after application of the complete observer model.
+
+\section{Evaluation Procedure}
+\subsection{Data and Spatial Conditions}\label{sec:data}
+The evaluation uses the SONICOM HRTF dataset \cite{Engel2023} with a 162/41 train--test split. The retained-direction counts and sparse masks follow the SONICOM upsampling protocol used by Hu et al. for HRTFformer, within the broader LAP upsampling benchmark context \cite{Hu2026HRTFformer,Hogg2025LAPUpsampling}. RANF, FSP-AE, and the interpolation methods use the same 41 held-out subjects and sparse masks. The test identifiers and retained coordinates are archived with the evaluation outputs. The magnitude representation has 128 positive-frequency bins per ear after removal of the DC bin, giving 256 binaural magnitude values per direction on a dense grid of 793 directions.
+
+Four sparse-to-dense conditions are evaluated: \(100\rightarrow793\), \(19\rightarrow793\), \(5\rightarrow793\), and \(3\rightarrow793\). The same retained directions are used for every method and subject within each condition.
+
+All Fisher-tensor fitting and AIRM comparison are performed on the unique physical grid. Duplicate coordinate entries introduced by an implementation layout receive no additional weight.
+
+\subsection{Compared Reconstruction Methods}
+The evaluation requires a reconstructed HRTF field on the common evaluation grid. The reported comparison includes:
+\begin{enumerate}
+    \item \textbf{SUpDEq-SH:} SUpDEq preprocessing followed by SH interpolation.
+    \item \textbf{SUpDEq-MCA:} the published Magnitude-Corrected and Time-Aligned configuration, which uses the same SH interpolation stage and then applies magnitude correction.
+    \item \textbf{Natural- and barycentric-MCA variants:} explicitly labelled \(6\,\mathrm{dB}\)-limited SUpDEq variants using natural-neighbour and barycentric interpolation, respectively.
+    \item \textbf{RANF:} a retrieval-augmented neural field that predicts magnitude and ITD and reconstructs HRIRs using a minimum-phase representation with ITD compensation \cite{Masuyama2025RANF,Masuyama2025ICASSPRANF}.
+    \item \textbf{FSP-AE:} a neural network conditioned on source position and frequency that predicts HRTF magnitude and ITD before HRIR reconstruction \cite{Ito2025FSPAE}.
+\end{enumerate}
+The natural-neighbour variant uses Voronoi-weighted interpolation as implemented by the SFS/SUpDEq routines. SUpDEq-Bary-MCA is undefined at three retained directions because they cannot form the required closed spherical hull; this condition is marked not applicable.
+
+For SUpDEq calls using SH interpolation, the reconstruction order is capped at \(\min(6,\lfloor\sqrt{N_{\mathrm{ret}}}-1\rfloor)\), where \(N_{\mathrm{ret}}\) is the number of retained directions. This avoids fitting more SH coefficients than the sparse grid can support. At \(N_{\mathrm{ret}}=3\), the cap therefore gives a zeroth-order SH magnitude field; methods without a direction-dependent delay or correction stage can consequently yield nearly constant cue fields. The Fisher-tensor metric records this behaviour as interpolation failure.
+
+\subsection{Preprocessing and Reconstruction Normalisation}
+All methods are converted to a common representation before comparison. Left- and right-ear HRTF magnitudes are aligned on the same frequency bins, with the DC bin removed. Methods operating in the SH domain are inverse-transformed to the full spatial grid; methods outputting HRIRs are converted to magnitudes by a common procedure. Fisher cues are extracted using the Barumerli PGE, ILD, and \path{MaxIACCe} ITD convention. RANF and FSP-AE outputs are treated as HRIR/SOFA reconstructions with model-provided ITD.
+
+The same CTF removal is applied to target and reconstruction before DTF feature extraction, leaving the direction-dependent spectral variation used to form the Fisher tensors.
+
+\section{Results}
+\subsection{Run Completion and Applicability}
+The reported comparison comprises 984 method--condition--subject rows: 41 subjects, four retention conditions, and six reconstruction methods. Of these rows, 943 completed successfully. The remaining 41 rows were all the \(N=3\) SUpDEq-Bary-MCA condition, which is not applicable because three retained directions cannot define the closed spherical hull required by the barycentric interpolation step. No completed rows contain missing AIRM, LSD, ILD, or Bayesian localisation metrics. All completed Fisher tensors use the same Barumerli PGE, ILD, and \path{MaxIACCe} ITD cue convention, and all reported Bayesian-observer summaries use 300 simulated repetitions.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.96\textwidth]{figures/evaluation/airm_heatmap.pdf}
+    \caption[Mean AIRM discrepancy over methods and retention conditions]{Mean Fisher-tensor AIRM discrepancy over the 41-subject cohort. Lower values indicate closer preservation of the dense-reference Fisher tensor field. The blank entry denotes the not-applicable \(N=3\) SUpDEq-Bary-MCA condition.}
+    \label{fig:airm_heatmap}
+\end{figure}
+\FloatBarrier
+
+\subsection{Fisher-Tensor Results}
+Figure~\ref{fig:airm_heatmap} reports cohort-mean AIRM for the six reconstruction methods. Fisher-tensor discrepancy depends strongly on sampling density and reconstruction method. RANF gives the lowest mean AIRM at every retention condition, ranging from 0.46 at \(N=100\) to 0.68 at \(N=3\). FSP-AE is close to RANF at \(N=100\) and is the second-best method at \(N=19\), \(N=5\), and \(N=3\). Among the interpolation methods, SUpDEq-Natural-MCA and SUpDEq-Bary-MCA are strongest at \(N=100\) and \(N=19\), but SUpDEq-Natural-MCA produces very large AIRM discrepancies at \(N=5\) and \(N=3\). SUpDEq-Bary-MCA is not applicable at \(N=3\).
+
+AIRM depends on local derivatives and on tensor anisotropy and orientation, so its method ranking can differ from rankings based on LSD or Bayesian-observer summaries.
+
+Table~\ref{tab:tensor_component_means} decomposes the AIRM behaviour into changes in tensor scale, eccentricity, and principal-axis direction. It reports cohort means; orientation error is evaluated only where both reference and reconstructed tensors are sufficiently anisotropic for a principal-axis angle to be meaningful.
+
+\input{tables/evaluation/tensor_component_mean_table.tex}
+\FloatBarrier
+
+\subsection{Signal and Bayesian-Observer Metrics}
+Conventional and Bayesian-observer metrics were computed for every completed method--condition--subject row. The Bayesian localisation model produces absolute simulated errors, but the manuscript reports the boxplot summaries relative to the dense self-reference condition for the same subject and observer configuration. These relative values isolate the additional model error introduced by the reconstruction, since the generic Barumerli listener already has non-zero error when the measured HRTF is compared with itself.
+
+RANF has the lowest LSD throughout the evaluated retention conditions. FSP-AE has larger LSD than RANF, but is competitive with the interpolation baselines and remains spectrally stable as sparsity increases. It also avoids the severe Fisher-tensor degradation observed for several interpolation baselines. Among the interpolation methods, AIRM, LSD, and relative Bayesian-observer summaries do not always select the same reconstruction. For example, at \(N=5\), SUpDEq-SH has lower AIRM than SUpDEq-MCA, whereas SUpDEq-MCA has lower relative polar RMS and lower quadrant-error degradation. The three evaluations measure tensor preservation, spectral reconstruction, and simulated localisation, respectively.
+
+Figure~\ref{fig:bayesian_subject_distributions} reports subject-wise distributions for lateral RMS, local polar RMS, and quadrant error. Lateral RMS captures horizontal response spread; local polar RMS and quadrant error capture elevation error and front--back confusions.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{figures/evaluation/lsd_subject_boxplot.pdf}
+    \caption[Subject-wise LSD distributions]{Subject-wise LSD distributions over the 41 held-out subjects for the principal comparison set. Boxes show medians and interquartile ranges, with whiskers spanning the 5th--95th percentiles.}
+    \label{fig:lsd_subject_boxplot}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.98\textwidth]{figures/evaluation/bayesian_subject_boxplots.pdf}
+    \caption[Subject-wise Bayesian-observer distribution summaries]{Subject-wise Bayesian-observer degradation over the 41 held-out subjects for the principal comparison set. Boxes show medians and interquartile ranges, with whiskers spanning the 5th--95th percentiles. The panels report changes in lateral RMS, local polar RMS, and quadrant error relative to the dense self-reference condition. The lateral RMS panel uses a broken vertical axis so that the compact subject-wise distributions remain visible alongside high-error conditions.}
+    \label{fig:bayesian_subject_distributions}
+\end{figure}
+\FloatBarrier
+
+\subsection{Metric Relationships}
+Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesian-observer summaries across the 943 completed reported rows. AIRM and LSD have a weak linear correlation but a strong rank association (\(r=0.25\), \(p<10^{-13}\); Spearman \(\rho=0.84\), \(p<10^{-246}\)), indicating that the ordering of reconstruction quality is substantially shared even though the absolute scales are not linearly equivalent. AIRM is also associated with relative local polar RMS (\(r=0.45\), \(p<10^{-47}\); Spearman \(\rho=0.79\), \(p<10^{-197}\)). These relationships are monotonic in broad outline, particularly as extreme sparse conditions degrade, but they are not one-to-one. Several methods with similar LSD differ appreciably in AIRM, and some methods with comparable Bayesian localisation summaries differ in tensor discrepancy. These cases support joint reporting of Fisher-tensor and established evaluation metrics.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/evaluation/metric_relationships_paper.pdf}
+    \caption[Relationships between AIRM and other evaluation metrics]{Mean AIRM discrepancy against LSD and relative local polar RMS across completed subject--method--condition rows. Pearson and Spearman coefficients are reported in the text.}
+    \label{fig:metric_relationships}
+\end{figure}
+\FloatBarrier
+
+\subsection{Local Discrimination-Threshold Plausibility}
+AIRM is a tensor distance, not itself an angular threshold. To express selected Fisher tensors in a more directly psychophysical unit, the \(d'=1\) threshold defined above was evaluated along lateral unit tangent directions at three horizontal-plane positions, \((0^\circ,0^\circ)\), \((45^\circ,0^\circ)\), and \((90^\circ,0^\circ)\), and along vertical unit tangent directions at two frontal-plane positions, \((0^\circ,0^\circ)\) and \((0^\circ,45^\circ)\). Coordinate pairs denote azimuth and elevation. Values are converted from radians to degrees. Table~\ref{tab:local_threshold_plausibility} reports scalar projections of the discrimination ellipse construction in Fig.~\ref{fig:sonicom_kent}: model-derived thresholds under the Barumerli/Reijniers cue-noise convention, not fitted behavioural minimum audible angles.
+
+\input{tables/evaluation/local_threshold_plausibility_table.tex}
+
+The dense reference predicts sharp frontal lateral acuity and poorer lateral precision towards the side of the head, with median lateral thresholds increasing from \(1.70^\circ\) at \((0^\circ,0^\circ)\) to \(6.78^\circ\) at \((90^\circ,0^\circ)\). The predicted vertical threshold is larger than the frontal lateral threshold, increasing from \(4.44^\circ\) at \((0^\circ,0^\circ)\) to \(5.71^\circ\) at \((0^\circ,45^\circ)\). The lateral trend is consistent with Stevenson-Hoare's broadband horizontal-plane spatial-precision measurements, in which minimum audible angles were smallest near the midline and increased towards the interaural axis: Fig.~14 of that thesis shows mean MAAs of approximately \(1.5^\circ\) at \(0^\circ\), \(2.7^\circ\) at \(45^\circ\), and \(7.2^\circ\) at \(90^\circ\), collapsed over left and right \cite{StevensonHoare2020}. The vertical scale is also consistent with Grantham, Hornsby, and Erpenbeck: using pseudovirtual KEMAR recordings, they measured adaptive two-interval thresholds for stationary wideband-noise pairs drawn from front-centred \(180^\circ\) trajectories in the horizontal, \(60^\circ\) diagonal, and vertical planes. They reported mean MAAs of \(1.6^\circ\), \(2.8^\circ\), and \(6.5^\circ\), respectively, for the screened listeners who could perform the vertical task \cite{Grantham2003}. These are not pointwise thresholds at \((0^\circ,45^\circ)\), but they support the expected anisotropic ordering of lateral, diagonal, and vertical spatial resolution. The comparison remains a psychophysical plausibility check on the observer scale rather than a fitted behavioural validation.
+
+Among the selected reconstructions, RANF preserves the five local thresholds most closely at \(N=19\). At \(N=5\), SUpDEq-Bary-MCA and RANF give the closest preservation of this local threshold profile, whereas FSP-AE overestimates the lateral threshold at \((90^\circ,0^\circ)\) and the vertical threshold at \((0^\circ,45^\circ)\). This local projection does not replace the full-sphere AIRM comparison, but it translates selected tensor discrepancies into angular units and confirms that the reported tensor differences correspond to interpretable changes in predicted discriminability.
+
+\FloatBarrier
+\section{Discussion and Future Work}
+
+Bivariate Fisher information evaluates the local derivatives of the selected auditory cues. AIRM measures reconstruction-induced changes in the anisotropy, orientation, and scale of the resulting tensors.
+
+The Bayesian localisation model predicts response distributions from sensory evidence, a prior, a decision rule, and response variability. The Fisher tensor describes local cue sensitivity under the Gaussian internal-noise model. Their results quantify simulated pointing and local discrimination, respectively.
+
+The high-sparsity results identify limits of the interpolation methods. Three retained directions do not satisfy the closed-hull requirement of SUpDEq-Bary-MCA. SH-based and natural-neighbour interpolation can produce severe Fisher-tensor divergence at extreme sparsity even when conventional error summaries remain finite. RANF gives the strongest overall performance, while FSP-AE provides a second learning-based comparator with stable Fisher-tensor behaviour despite higher LSD.
+
+The spatial discriminability calculation uses fixed Barumerli/Reijniers cue-noise standard deviations in a Gaussian model of internal cue noise. The resulting \(d'=1\) contours describe a generic observer, not listener-specific thresholds. The ITD component has a direct discrimination calibration through the Reijniers transformed-JND scale, whereas the PGE and ILD weights are model parameters inherited from the Barumerli observer convention. A future behavioural discrimination study could recalibrate the absolute scale, or a small number of grouped cue weights, but such fitting is deliberately kept separate from the objective reconstruction comparison reported here. Band-limited or direction-dependent cue variability of the type considered by Pav\~ao et al. \cite{Pavao2020} would produce different Fisher tensors. Controlled degradation tests could test the response of AIRM to known spectral and spatial perturbations.
+
+The Fisher tensor defines a direction-dependent metric on the sphere. A future optimisation objective could combine spectral error with penalties on the spatial Jacobians of the constituent localisation cues, such as PGE, ILD, and ITD, together with an explicit local spectral-continuity term. The neighbour-dissimilarity loss proposed for HRTFformer \cite{Hu2026HRTFformer} is consistent with this need for spatial regularity; the present framework suggests tying such regularisation directly to discrimination-relevant cue derivatives rather than to pointwise spectra alone.
+
+\FloatBarrier
+\begin{thebibliography}{99}
+
+\bibitem{Dayan2001}
+Dayan, Peter, and L. F. Abbott. \textit{Theoretical Neuroscience}. MIT Press: Cambridge, MA, 2001.
+
+\bibitem{Rao1945}
+Rao, C. R. ``Information and the accuracy attainable in the estimation of statistical parameters.'' \textit{Bulletin of the Calcutta Mathematical Society}, vol. 37, no. 3, 1945, pp. 81--91.
+
+\bibitem{Starch1905}
+Starch, Daniel. ``Perimetry of the localization of sound.'' \textit{Psychological Review: Monograph Supplements}, vol. 6, no. 4, 1905, pp. 1--45.
+
+\bibitem{StevensonHoare2020}
+Stevenson-Hoare, Joshua Oscar. \textit{Auditory Spatial Precision in the Horizontal Plane}. Ph.D. dissertation, School of Psychology, Cardiff University, 2020.
+
+\bibitem{Grantham2003}
+Grantham, D. Wesley, Benjamin W. Y. Hornsby, and Eric A. Erpenbeck. ``Auditory spatial resolution in horizontal, vertical, and diagonal planes.'' \textit{The Journal of the Acoustical Society of America}, vol. 114, no. 2, 2003, pp. 1009--1022. doi:10.1121/1.1590970.
+
+\bibitem{Carlile1997}
+Carlile, Simon, Philip Leong, and Stephanie Hyams. ``The nature and distribution of errors in sound localisation by human listeners.'' \textit{Hearing Research}, vol. 114, no. 1--2, 1997, pp. 179--196.
+
+\bibitem{Harper2004}
+Harper, Nicol S., and David McAlpine. ``Optimal neural population coding of an auditory spatial cue.'' \textit{Nature}, vol. 430, no. 7000, 2004, pp. 682--686.
+
+\bibitem{Pavao2020}
+Pav\~{a}o, Rodrigo, Elyse S. Sussman, Brian J. Fischer, and Jos\'e L. Pe\~{n}a. ``Natural ITD statistics predict human auditory spatial perception.'' \textit{Elife}, vol. 9, 2020, p. e51927.
+
+\bibitem{Barumerli2023}
+Barumerli, Roberto, Piotr Majdak, Michele Geronazzo, David Meijer, Federico Avanzini, and Robert Baumgartner. ``A Bayesian model for human directional localization of broadband static sound sources.'' \textit{Acta Acustica}, vol. 7, 2023, p. 12.
+
+\bibitem{Engel2023}
+Engel, I., Daugintis, R., Vicente, T., Hogg, A. O. T., Pauwels, J., Tournier, A. J., and Picinali, L. ``The SONICOM HRTF Dataset.'' \textit{Journal of the Audio Engineering Society}, vol. 71, pp. 241--253, 2023. doi:10.17743/jaes.2022.0066.
+
+\bibitem{Hu2026HRTFformer}
+X. Hu, J. Li, S. Zhang, S. Goetz, L. Picinali, O. B. Akan, and A. O. T. Hogg,
+``HRTFformer: A spatially-aware transformer for individual HRTF upsampling in immersive audio rendering,''
+arXiv:2510.01891, 2026.
+
+\bibitem{Hogg2025LAPUpsampling}
+A. O. T. Hogg, R. Barumerli, R. Daugintis, K. C. Poole, F. Brinkmann, L. Picinali, and M. Geronazzo,
+``Listener Acoustic Personalisation Challenge--LAP24: Head-related transfer function upsampling,''
+\textit{IEEE Open Journal of Signal Processing}, 2025.
+
+\bibitem{Baumgartner2014}
+Baumgartner, R., Majdak, P., and Laback, B. ``Modeling sound-source localization in sagittal planes for human listeners.'' \textit{The Journal of the Acoustical Society of America}, vol. 136, no. 2, pp. 791--802, 2014.
+
+\bibitem{Reijniers2014}
+J. Reijniers, D. Vanderelst, C. Jin, S. Carlile, and H. Peremans,
+``An ideal-observer model of human sound localization,''
+\textit{Biological Cybernetics}, vol. 108, no. 2, pp. 169--181, 2014.
+
+\bibitem{Masuyama2025RANF}
+Y. Masuyama, G. Wichern, F. G. Germain, C. Ick, and J. Le Roux,
+``RANF: Neural field-based HRTF spatial upsampling with retrieval augmentation and parameter efficient fine-tuning,''
+\textit{IEEE Open Journal of Signal Processing}, 2025.
+
+\bibitem{Masuyama2025ICASSPRANF}
+Y. Masuyama, G. Wichern, F. G. Germain, C. Ick, and J. Le Roux,
+``Retrieval-Augmented Neural Field for HRTF Upsampling and Personalization,''
+in \textit{Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, Apr. 2025.
+
+\bibitem{Ito2025FSPAE}
+Y. Ito, T. Nakamura, S. Koyama, S. Sakamoto, and H. Saruwatari,
+``Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency,''
+\textit{IEEE Open Journal of Signal Processing}, vol. 6, pp. 1109--1123, 2025, doi:10.1109/OJSP.2025.3613132.
+
+\bibitem{Middlebrooks1999}
+Middlebrooks, J. C. ``Virtual localization improved by scaling nonindividualized external-ear transfer functions in frequency.'' \textit{The Journal of the Acoustical Society of America}, vol. 106, no. 3, pp. 1493--1510, 1999.
+
+\end{thebibliography}
+
+\end{document}
+
+
+
+
+
