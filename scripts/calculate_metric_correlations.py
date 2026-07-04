@@ -2,11 +2,12 @@
 
 import csv
 import math
+import random
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SUMMARY = (
+PRIMARY_SUMMARY = (
     ROOT
     / "results"
     / "barumerli_pge_fisher_final"
@@ -15,15 +16,19 @@ SUMMARY = (
 FSP_AE_SUMMARY = (
     ROOT
     / "results"
-    / "barumerli_pge_fisher_fsp_ae"
+    / "learning_comparator_extension"
     / "full_evaluation_summary.csv"
 )
 FSP_AE_LSD_16K = (
     ROOT
     / "results"
-    / "barumerli_pge_fisher_fsp_ae"
+    / "learning_comparator_extension"
     / "fsp_ae_lsd_20_16k.csv"
 )
+AUDIT_CSV = ROOT / "results" / "audits" / "metric_correlations.csv"
+TABLE_TEX = ROOT / "tables" / "evaluation" / "metric_correlation_table.tex"
+TABLE_TEX_IEEE = ROOT / "tables" / "evaluation" / "metric_correlation_table_ieee.tex"
+
 METHODS = {
     "SUpDEq_SH",
     "SUpDEq_MCA",
@@ -32,6 +37,14 @@ METHODS = {
     "RANF",
     "FSP_AE",
 }
+
+METRICS = [
+    ("LSDdB", "LSD"),
+    ("ILDErrorDb", "ILD"),
+    ("relativeLateralRMSErrorDeg", "Relative lateral RMS"),
+    ("relativeLocalPolarRMSErrorDeg", "Relative local polar RMS"),
+    ("relativeQuadrantErrorPercentagePoints", "Relative quadrant error"),
+]
 
 
 def pearson(x: list[float], y: list[float]) -> float:
@@ -59,81 +72,17 @@ def average_ranks(values: list[float]) -> list[float]:
     return ranks
 
 
-def beta_continued_fraction(a: float, b: float, x: float) -> float:
-    max_iterations = 200
-    epsilon = 3.0e-14
-    floor = 1.0e-300
-    qab = a + b
-    qap = a + 1.0
-    qam = a - 1.0
-    c = 1.0
-    d = 1.0 - qab * x / qap
-    if abs(d) < floor:
-        d = floor
-    d = 1.0 / d
-    h = d
-    for iteration in range(1, max_iterations + 1):
-        twice = 2 * iteration
-        aa = iteration * (b - iteration) * x / ((qam + twice) * (a + twice))
-        d = 1.0 + aa * d
-        if abs(d) < floor:
-            d = floor
-        c = 1.0 + aa / c
-        if abs(c) < floor:
-            c = floor
-        d = 1.0 / d
-        h *= d * c
-        aa = -(a + iteration) * (qab + iteration) * x / (
-            (a + twice) * (qap + twice)
-        )
-        d = 1.0 + aa * d
-        if abs(d) < floor:
-            d = floor
-        c = 1.0 + aa / c
-        if abs(c) < floor:
-            c = floor
-        d = 1.0 / d
-        delta = d * c
-        h *= delta
-        if abs(delta - 1.0) < epsilon:
-            return h
-    raise RuntimeError("Incomplete-beta continued fraction did not converge")
+def spearman(x: list[float], y: list[float]) -> float:
+    return pearson(average_ranks(x), average_ranks(y))
 
 
-def regularized_incomplete_beta(a: float, b: float, x: float) -> float:
-    if x <= 0.0:
-        return 0.0
-    if x >= 1.0:
-        return 1.0
-    log_factor = (
-        math.lgamma(a + b)
-        - math.lgamma(a)
-        - math.lgamma(b)
-        + a * math.log(x)
-        + b * math.log1p(-x)
-    )
-    factor = math.exp(log_factor)
-    if x < (a + 1.0) / (a + b + 2.0):
-        return factor * beta_continued_fraction(a, b, x) / a
-    return 1.0 - factor * beta_continued_fraction(b, a, 1.0 - x) / b
+def correlation(rows: list[dict[str, str]], y_key: str, *, rank: bool) -> float:
+    x = [float(row["meanAIRM"]) for row in rows]
+    y = [float(row[y_key]) for row in rows]
+    return spearman(x, y) if rank else pearson(x, y)
 
 
-def correlation_p_value(r: float, count: int) -> float:
-    degrees = count - 2
-    x = degrees / (degrees + r * r * degrees / (1.0 - r * r))
-    return regularized_incomplete_beta(degrees / 2.0, 0.5, x)
-
-
-def report(x: list[float], y: list[float], label: str) -> None:
-    r = pearson(x, y)
-    rho = pearson(average_ranks(x), average_ranks(y))
-    print(
-        f"{label}: Pearson r={r:.8g}, p={correlation_p_value(r, len(x)):.8g}; "
-        f"Spearman rho={rho:.8g}, p={correlation_p_value(rho, len(x)):.8g}"
-    )
-
-
-def main() -> None:
+def read_rows() -> list[dict[str, str]]:
     fsp_lsd: dict[tuple[str, str], str] = {}
     if FSP_AE_LSD_16K.is_file():
         with FSP_AE_LSD_16K.open(newline="", encoding="utf-8-sig") as handle:
@@ -142,24 +91,168 @@ def main() -> None:
                 fsp_lsd[key] = row["LSDdB_20_16k"]
 
     rows: list[dict[str, str]] = []
-    for path in [SUMMARY, FSP_AE_SUMMARY]:
+    for path in [PRIMARY_SUMMARY, FSP_AE_SUMMARY]:
         if not path.is_file():
             continue
         with path.open(newline="", encoding="utf-8-sig") as handle:
             for row in csv.DictReader(handle):
-                if row["status"] == "completed" and row["method"] in METHODS:
-                    if row["method"] == "FSP_AE":
-                        key = (row["subjectId"], row["retainedDirections"])
-                        if key in fsp_lsd:
-                            row["LSDdB"] = fsp_lsd[key]
-                    rows.append(row)
+                if row["status"] != "completed" or row["method"] not in METHODS:
+                    continue
+                if row["method"] == "FSP_AE":
+                    key = (row["subjectId"], row["retainedDirections"])
+                    if key in fsp_lsd:
+                        row["LSDdB"] = fsp_lsd[key]
+                try:
+                    float(row["meanAIRM"])
+                    for metric_key, _label in METRICS:
+                        float(row[metric_key])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                rows.append(row)
+    return rows
 
-    airm = [float(row["meanAIRM"]) for row in rows]
-    lsd = [float(row["LSDdB"]) for row in rows]
-    polar = [float(row["relativeLocalPolarRMSErrorDeg"]) for row in rows]
+
+def collapse_method_condition(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    grouped: dict[tuple[str, str], list[dict[str, str]]] = {}
+    for row in rows:
+        key = (row["method"], row["retainedDirections"])
+        grouped.setdefault(key, []).append(row)
+
+    collapsed: list[dict[str, str]] = []
+    for (method, retention), group in sorted(grouped.items()):
+        out = {"method": method, "retainedDirections": retention}
+        for key in ["meanAIRM", *[metric_key for metric_key, _label in METRICS]]:
+            out[key] = str(sum(float(row[key]) for row in group) / len(group))
+        collapsed.append(out)
+    return collapsed
+
+
+def subject_cluster_bootstrap_ci(
+    rows: list[dict[str, str]], metric_key: str, *, iterations: int = 1000
+) -> tuple[float, float]:
+    subjects = sorted({row["subjectId"] for row in rows})
+    by_subject = {
+        subject: [row for row in rows if row["subjectId"] == subject]
+        for subject in subjects
+    }
+    rng = random.Random(20260704)
+    values: list[float] = []
+    for _ in range(iterations):
+        sample: list[dict[str, str]] = []
+        for subject in (rng.choice(subjects) for _ in subjects):
+            sample.extend(by_subject[subject])
+        values.append(correlation(sample, metric_key, rank=True))
+    values.sort()
+    lower = values[int(0.025 * iterations)]
+    upper = values[int(0.975 * iterations)]
+    return lower, upper
+
+
+def compute_statistics(rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    cell_rows = collapse_method_condition(rows)
+    statistics: list[dict[str, object]] = []
+    for metric_key, label in METRICS:
+        lower, upper = subject_cluster_bootstrap_ci(rows, metric_key)
+        statistics.append(
+            {
+                "metricKey": metric_key,
+                "label": label,
+                "rowPearson": correlation(rows, metric_key, rank=False),
+                "rowSpearman": correlation(rows, metric_key, rank=True),
+                "methodRetentionPearson": correlation(cell_rows, metric_key, rank=False),
+                "methodRetentionSpearman": correlation(cell_rows, metric_key, rank=True),
+                "rowSpearmanSubjectBootstrapCiLower": lower,
+                "rowSpearmanSubjectBootstrapCiUpper": upper,
+                "nRows": len(rows),
+                "nSubjects": len({row["subjectId"] for row in rows}),
+                "nMethodRetentionCells": len(cell_rows),
+            }
+        )
+    return statistics
+
+
+def write_tables(statistics: list[dict[str, object]]) -> None:
+    lines = [
+        "\\begin{table}[ht!]",
+        "\\centering",
+        "\\caption{Association between mean AIRM and established evaluation metrics. Correlations are reported over the 23 completed method--retention means; the final column gives a 95\\% subject-cluster bootstrap interval for the corresponding row-wise Spearman coefficient, preserving all within-subject repeated measurements.}",
+        "\\label{tab:metric_correlations}",
+        "\\small",
+        "\\begin{tabular}{lrrr}",
+        "\\toprule",
+        "Metric & Pearson $r$ & Spearman $\\rho$ & Row-wise $\\rho$ 95\\% CI \\\\",
+        "\\midrule",
+    ]
+    for row in statistics:
+        lines.append(
+            f"{row['label']} & {row['methodRetentionPearson']:.2f} "
+            f"& {row['methodRetentionSpearman']:.2f} "
+            f"& [{row['rowSpearmanSubjectBootstrapCiLower']:.2f}, "
+            f"{row['rowSpearmanSubjectBootstrapCiUpper']:.2f}] \\\\"
+        )
+    lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{table}", ""])
+    TABLE_TEX.write_text("\n".join(lines), encoding="utf-8")
+
+    ieee_lines = lines.copy()
+    ieee_lines[0] = "\\begin{table*}[t]"
+    ieee_lines[-2] = "\\end{table*}"
+    TABLE_TEX_IEEE.write_text("\n".join(ieee_lines), encoding="utf-8")
+
+
+def write_audit_csv(statistics: list[dict[str, object]]) -> None:
+    AUDIT_CSV.parent.mkdir(parents=True, exist_ok=True)
+    with AUDIT_CSV.open("w", newline="", encoding="utf-8") as handle:
+        fieldnames = [
+            "metric",
+            "rowPearson",
+            "rowSpearman",
+            "methodRetentionPearson",
+            "methodRetentionSpearman",
+            "rowSpearmanSubjectBootstrapCiLower",
+            "rowSpearmanSubjectBootstrapCiUpper",
+            "nRows",
+            "nSubjects",
+            "nMethodRetentionCells",
+        ]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in statistics:
+            writer.writerow(
+                {
+                    "metric": row["label"],
+                    "rowPearson": f"{row['rowPearson']:.8g}",
+                    "rowSpearman": f"{row['rowSpearman']:.8g}",
+                    "methodRetentionPearson": f"{row['methodRetentionPearson']:.8g}",
+                    "methodRetentionSpearman": f"{row['methodRetentionSpearman']:.8g}",
+                    "rowSpearmanSubjectBootstrapCiLower": f"{row['rowSpearmanSubjectBootstrapCiLower']:.8g}",
+                    "rowSpearmanSubjectBootstrapCiUpper": f"{row['rowSpearmanSubjectBootstrapCiUpper']:.8g}",
+                    "nRows": row["nRows"],
+                    "nSubjects": row["nSubjects"],
+                    "nMethodRetentionCells": row["nMethodRetentionCells"],
+                }
+            )
+
+
+def main() -> None:
+    rows = read_rows()
+    statistics = compute_statistics(rows)
     print(f"Completed principal-set rows: {len(rows)}")
-    report(airm, lsd, "AIRM versus LSD")
-    report(airm, polar, "AIRM versus relative local polar RMS")
+    print(f"Subjects: {len({row['subjectId'] for row in rows})}")
+    print(f"Method-retention means: {len(collapse_method_condition(rows))}")
+    for row in statistics:
+        print(
+            f"AIRM versus {row['label']}: "
+            f"method-retention Pearson r={row['methodRetentionPearson']:.3f}, "
+            f"Spearman rho={row['methodRetentionSpearman']:.3f}; "
+            f"row-wise Spearman 95% subject-cluster CI=["
+            f"{row['rowSpearmanSubjectBootstrapCiLower']:.3f}, "
+            f"{row['rowSpearmanSubjectBootstrapCiUpper']:.3f}]"
+        )
+    write_audit_csv(statistics)
+    write_tables(statistics)
+    print(f"Wrote {AUDIT_CSV}")
+    print(f"Wrote {TABLE_TEX}")
+    print(f"Wrote {TABLE_TEX_IEEE}")
 
 
 if __name__ == "__main__":

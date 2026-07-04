@@ -341,7 +341,7 @@ Figures~\ref{fig:sonicom_kent} and~\ref{fig:kent_map_scatter} place the two obse
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=1\textwidth]{Sonicom_Kent.png}
-    \caption[SONICOM Fisher discriminability ellipses from the Cram\'er--Rao bound]{Local 95\% confidence auditory discrimination ellipses derived from the Cram\'er--Rao bound. Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the population median of the SONICOM dataset (\(N=245\)).}
+    \caption[SONICOM Fisher discriminability ellipses from the Cram\'er--Rao bound]{Local 95\% model covariance ellipses derived from the Cram\'er--Rao bound. Each contour is the two-dimensional Gaussian \(\chi^2_2(0.95)\) contour of \(\mathbf g(\mathbf r)^{-1}\). Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the population median of the SONICOM dataset (\(N=245\)).}
     \label{fig:sonicom_kent}
 \end{figure}
 
@@ -417,7 +417,7 @@ Using the HRTF-magnitude notation defined above, the binaural log-spectral disto
 \right)^2
 }.
 \end{equation}
-LSD serves as the principal signal-domain metric because it directly measures spectral magnitude agreement. For band-limited reconstructions, the sum over \(k\) is restricted to the reconstructed spectral support; FSP-AE is evaluated over 20 Hz--16 kHz, matching its published configuration.
+LSD serves as the principal signal-domain metric because it directly measures spectral magnitude agreement. Frequency-domain error calculations are made on the common frequency support of the reference and reconstruction. For FSP-AE, the reference remains the original dense HRIR data, but only bins within the model's 20 Hz--16 kHz support enter the reported spectral-error summaries.
 
 \subsection{Interaural Level Difference Error}
 ILD error measures binaural level reconstruction. Define the frequency-averaged HRTF ILD
@@ -573,12 +573,14 @@ Figure~\ref{fig:bayesian_subject_distributions} reports subject-wise distributio
 \FloatBarrier
 
 \subsection{Metric Relationships}
-Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesian-observer summaries across the 943 completed reported rows. AIRM and LSD have a weak linear correlation but a strong rank association (\(r=0.25\), \(p<10^{-13}\); Spearman \(\rho=0.84\), \(p<10^{-246}\)), indicating that the ordering of reconstruction quality is substantially shared even though the absolute scales are not linearly equivalent. AIRM is also associated with relative local polar RMS (\(r=0.45\), \(p<10^{-47}\); Spearman \(\rho=0.79\), \(p<10^{-197}\)). These relationships are monotonic in broad outline, particularly as extreme sparse conditions degrade, but they are not one-to-one. Several methods with similar LSD differ appreciably in AIRM, and some methods with comparable Bayesian localisation summaries differ in tensor discrepancy. These cases support joint reporting of Fisher-tensor and established evaluation metrics.
+Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesian-observer summaries across the 943 completed reported rows. Because these rows form a repeated subject--method--condition design, inferential \(p\)-values are not computed by treating them as independent samples. Table~\ref{tab:metric_correlations} instead reports correlations over the 23 completed method--retention means, together with subject-cluster bootstrap intervals for the corresponding row-wise Spearman coefficients. AIRM and LSD have a weak linear association but a strong rank association, indicating that the ordering of reconstruction quality is substantially shared even though the absolute scales are not linearly equivalent. AIRM is also associated with relative local polar RMS and relative lateral RMS. These relationships are approximately monotonic, particularly as extreme sparse conditions degrade, but they are not one-to-one. Several methods with similar LSD differ appreciably in AIRM, and some methods with comparable Bayesian localisation summaries differ in tensor discrepancy. These cases support joint reporting of Fisher-tensor and established evaluation metrics.
+
+\input{tables/evaluation/metric_correlation_table.tex}
 
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=1\textwidth]{figures/evaluation/metric_relationships_paper.pdf}
-    \caption[Relationships between AIRM and other evaluation metrics]{Mean AIRM discrepancy against LSD and relative local polar RMS across completed subject--method--condition rows. Pearson and Spearman coefficients are reported in the text.}
+    \caption[Relationships between AIRM and other evaluation metrics]{Mean AIRM discrepancy against LSD and relative local polar RMS across completed subject--method--condition rows. Correlation summaries are reported in Table~\ref{tab:metric_correlations}.}
     \label{fig:metric_relationships}
 \end{figure}
 \FloatBarrier
@@ -677,6 +679,7 @@ Middlebrooks, J. C. ``Virtual localization improved by scaling nonindividualized
 \end{thebibliography}
 
 \end{document}
+
 
 
 

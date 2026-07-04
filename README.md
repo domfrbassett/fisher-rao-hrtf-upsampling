@@ -23,6 +23,7 @@ The evaluation expects local copies of:
 - SONICOM HRTF SOFA files.
 - AMT / SOFA Toolbox for MATLAB.
 - SUpDEq and its third-party MATLAB dependencies.
+- A Python environment with `numpy`, `pandas`, and `matplotlib` for figure regeneration.
 - The public RANF repository when reproducing RANF outputs.
 - The public FSP-AE repository code path used by `ml_comparator_research/fsp_ae_sonicom`.
 
@@ -43,4 +44,5 @@ The included summary CSVs regenerate the manuscript figures and TeX table fragme
 ## Data Availability
 
 If you are a researcher seeking to reproduce or extend the work, please contact the author. Generated outputs such as reconstructed SOFA files can be shared where licensing and dataset terms permit. Third-party datasets, toolbox code, and external model repositories should be obtained from their original sources.
+
 

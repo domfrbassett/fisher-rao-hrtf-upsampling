@@ -16,13 +16,13 @@ SUMMARY_CSV = RESULT_ROOT / "full_evaluation_summary.csv"
 FSP_AE_SUMMARY_CSV = (
     ROOT
     / "results"
-    / "barumerli_pge_fisher_fsp_ae"
+    / "learning_comparator_extension"
     / "full_evaluation_summary.csv"
 )
 FSP_AE_LSD_16K_CSV = (
     ROOT
     / "results"
-    / "barumerli_pge_fisher_fsp_ae"
+    / "learning_comparator_extension"
     / "fsp_ae_lsd_20_16k.csv"
 )
 SAM_CSV = ROOT / "results" / "ml_lap_sam_metrics.csv"
@@ -851,4 +851,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
