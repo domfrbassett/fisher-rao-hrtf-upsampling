@@ -6,8 +6,7 @@ The repository includes the paper source, compiled PDFs, figures and tables used
 
 ## Contents
 
-- `Fisher_Rao_HRTF_Evaluation.tex` and `Fisher_Rao_HRTF_Evaluation.pdf`: full manuscript.
-- `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.pdf`: two-column manuscript variant.
+- `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.pdf`: two-column manuscript.
 - `run_hrtf_fisher_rao_evaluation.m`: MATLAB evaluation pipeline for signal metrics, Barumerli-style localisation metrics, and Fisher tensor discrepancy.
 - `run_hrtf_fisher_rao_hu_protocol.m`: wrapper for the 41-subject sparse-mask protocol used for the machine-learning comparator evaluation.
 - `scripts/`: Python scripts used to regenerate manuscript figures and tables from summary CSVs.
@@ -44,5 +43,3 @@ The included summary CSVs regenerate the manuscript figures and TeX table fragme
 ## Data Availability
 
 If you are a researcher seeking to reproduce or extend the work, please contact the author. Generated outputs such as reconstructed SOFA files can be shared where licensing and dataset terms permit. Third-party datasets, toolbox code, and external model repositories should be obtained from their original sources.
-
-
