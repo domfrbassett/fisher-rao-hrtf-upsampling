@@ -37,10 +37,10 @@ results/**/*.pkl
 results/**/*.pt
 results/**/*.pth
 results/**/*.npz
+!results/audits/seeded_41_median_fisher_and_covariance.npz
 
 # ML comparator cloned repositories and work products
 ml_comparator_research/**/repos/
 ml_comparator_research/**/work/
 ml_comparator_research/**/__pycache__/
 ml_comparator_research/**/outputs/
-

@@ -193,9 +193,27 @@ def write_tables(statistics: list[dict[str, object]]) -> None:
     lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{table}", ""])
     TABLE_TEX.write_text("\n".join(lines), encoding="utf-8")
 
-    ieee_lines = lines.copy()
-    ieee_lines[0] = "\\begin{table*}[t]"
-    ieee_lines[-2] = "\\end{table*}"
+    ieee_lines = [
+        "\\begin{table}[!t]",
+        "\\centering",
+        "\\caption{Association between mean AIRM and established evaluation metrics. Correlations are computed over the 23 completed method--retention means; the final column gives a 95\\% subject-cluster bootstrap interval for the corresponding row-wise Spearman coefficient.}",
+        "\\label{tab:metric_correlations}",
+        "\\scriptsize",
+        "\\setlength{\\tabcolsep}{2.0pt}",
+        "\\resizebox{\\columnwidth}{!}{%",
+        "\\begin{tabular}{lrrr}",
+        "\\toprule",
+        "Metric & Pearson $r$ & Spearman $\\rho$ & Row-wise $\\rho$ 95\\% CI \\\\",
+        "\\midrule",
+    ]
+    for row in statistics:
+        ieee_lines.append(
+            f"{row['label']} & {row['methodRetentionPearson']:.2f} "
+            f"& {row['methodRetentionSpearman']:.2f} "
+            f"& [{row['rowSpearmanSubjectBootstrapCiLower']:.2f}, "
+            f"{row['rowSpearmanSubjectBootstrapCiUpper']:.2f}] \\\\"
+        )
+    ieee_lines.extend(["\\bottomrule", "\\end{tabular}%", "}", "\\end{table}", ""])
     TABLE_TEX_IEEE.write_text("\n".join(ieee_lines), encoding="utf-8")
 
 
@@ -257,4 +275,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

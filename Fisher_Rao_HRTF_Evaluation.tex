@@ -53,9 +53,9 @@ The relevant perceptual object is therefore not only the HRTF at a single direct
 
 Modern localisation data support the need for a coupled bivariate account. Carlile et al. \cite{Carlile1997} analysed localisation error distributions with spherical statistics and modelled them as either rotationally symmetric Fisher distributions or elliptical Kent distributions. In the pooled data, 50 of 76 target-location distributions (66\%) were Kent distributed. Their major axes were often not aligned with the azimuth/elevation coordinate axes, and the authors argued that off-midline response patterns were difficult to interpret as independent, orthogonal interaural and spectral cue-processing errors: the observed major axes did not follow the cones of confusion expected under an orthogonal cue-processing account. This observation is important for HRTF upsampling because a reconstruction may preserve average spectra while altering the anisotropy or orientation of the local discrimination structure. The Bayesian model of Barumerli et al. \cite{Barumerli2023} is calibrated against aggregate lateral, polar, and quadrant errors and provides realistic point estimates. However, its post-decision isotropic von Mises--Fisher scatter causes Monte Carlo response distributions to converge towards radial symmetry about those estimates, obscuring directional precision (Fig.~\ref{fig:kent_map_scatter}). A tensorial sensory analysis is therefore needed alongside localisation-model evaluation.
 
-Fisher information provides this tensorial description. Within auditory neuroscience, Fisher information has been used to relate binaural cue statistics and neural response properties. Harper and McAlpine \cite{Harper2004} analysed the population coding of interaural time differences (ITDs) in the mammalian brainstem and showed that neural tuning distributions can be organised to maximise Fisher information over naturally occurring cue ranges. Pav\~ao et al. \cite{Pavao2020} extended this analysis to human listeners and reported that the spatial distribution of Fisher information derived from HRTF statistics correlates with measured free-field ITD discrimination thresholds.
+Fisher information gives such a local tensor: it quantifies how rapidly the expected auditory cues change with small displacements in source direction. Within auditory neuroscience, Fisher information has been used to relate binaural cue statistics and neural response properties. Harper and McAlpine \cite{Harper2004} analysed the population coding of interaural time differences (ITDs) in the mammalian brainstem and showed that neural tuning distributions can be organised to maximise Fisher information over naturally occurring cue ranges. Pav\~ao et al. \cite{Pavao2020} extended this analysis to human listeners and reported that the spatial distribution of Fisher information derived from HRTF statistics correlates with measured free-field ITD discrimination thresholds.
 
-This paper uses Fisher information to evaluate HRTF reconstruction and spatial upsampling. Let the sound-source direction be \(\mathbf{r}\in\mathbb{S}^2\), and let \(\boldsymbol{\xi}\in\mathbb{R}^{2}\) denote local angular coordinates in an orthonormal tangent basis at \(\mathbf{r}\). Fisher information provides a local measure of stimulus discriminability on these coordinates. For any unbiased local estimator \(\hat{\boldsymbol{\xi}}\), provided that the Fisher information matrix is nonsingular, the Cram\'er--Rao bound (CRB) states
+This paper uses Fisher information to evaluate HRTF reconstruction and spatial upsampling. Let the sound-source direction be \(\mathbf{r}\in\mathbb{S}^2\), and let \(\boldsymbol{\xi}\in\mathbb{R}^{2}\) denote local angular coordinates in an orthonormal tangent basis at \(\mathbf{r}\). The Fisher information matrix quantifies local stimulus discriminability on these coordinates. For any unbiased local estimator \(\hat{\boldsymbol{\xi}}\), provided that the Fisher information matrix is nonsingular, the Cram\'er--Rao bound (CRB) states
 \begin{equation}
 \operatorname{Cov}(\hat{\boldsymbol{\xi}}) \succeq \mathbf{g}(\mathbf{r})^{-1},
 \end{equation}
@@ -340,15 +340,15 @@ Figures~\ref{fig:sonicom_kent} and~\ref{fig:kent_map_scatter} place the two obse
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{Sonicom_Kent.png}
-    \caption[SONICOM Fisher discriminability ellipses from the Cram\'er--Rao bound]{Local 95\% model covariance ellipses derived from the Cram\'er--Rao bound. Each contour is the two-dimensional Gaussian \(\chi^2_2(0.95)\) contour of \(\mathbf g(\mathbf r)^{-1}\). Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the population median of the SONICOM dataset (\(N=245\)).}
+\includegraphics[width=1\textwidth]{Sonicom_Kent.png}
+    \caption[SONICOM Fisher discriminability ellipses from the Cram\'er--Rao bound]{Local auditory discrimination ellipses derived from the Cram\'er--Rao bound. Ellipses show the 95\% two-dimensional covariance contour, scaled by \(\sqrt{\chi^2_{2,0.95}}\). Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the median Fisher tensor of the 41-subject SONICOM evaluation cohort.}
     \label{fig:sonicom_kent}
 \end{figure}
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{Kent_MC_MAP_1x4.png}
-    \caption[Predicted pointing-error covariance from the Barumerli MAP estimator]{Predicted pointing error from a converged Monte Carlo simulation of the maximum a posteriori estimator of Barumerli et al. \cite{Barumerli2023}. Ellipses represent local covariance matrices, scaled to one standard deviation along each principal axis. Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the population median of the SONICOM dataset (\(N=245\)).}
+\includegraphics[width=1\textwidth]{Kent_MC_MAP_1x4.png}
+    \caption[Predicted pointing-error covariance from the Barumerli MAP estimator]{Predicted pointing error from a converged Monte Carlo simulation of the maximum a posteriori estimator of Barumerli et al. \cite{Barumerli2023}. Ellipses represent local response covariance matrices, scaled to one standard deviation along each principal axis. Views correspond to azimuths of \(0^\circ\), \(90^\circ\), \(180^\circ\), and \(270^\circ\). Results are based on the median covariance of the 41-subject SONICOM evaluation cohort.}
     \label{fig:kent_map_scatter}
 \end{figure}
 
@@ -417,7 +417,7 @@ Using the HRTF-magnitude notation defined above, the binaural log-spectral disto
 \right)^2
 }.
 \end{equation}
-LSD serves as the principal signal-domain metric because it directly measures spectral magnitude agreement. Frequency-domain error calculations are made on the common frequency support of the reference and reconstruction. For FSP-AE, the reference remains the original dense HRIR data, but only bins within the model's 20 Hz--16 kHz support enter the reported spectral-error summaries.
+LSD serves as the principal signal-domain metric because it directly measures spectral magnitude agreement. For band-limited reconstructions, the sum over \(k\) is restricted to the reconstructed spectral support; FSP-AE is evaluated over 20 Hz--16 kHz, matching its published configuration.
 
 \subsection{Interaural Level Difference Error}
 ILD error measures binaural level reconstruction. Define the frequency-averaged HRTF ILD
@@ -504,19 +504,26 @@ The implementation uses AMT \path{barumerli2023} with DTF feature extraction, ma
 
 \section{Evaluation Procedure}
 \subsection{Data and Spatial Conditions}\label{sec:data}
-The evaluation uses the SONICOM HRTF dataset \cite{Engel2023} with a 162/41 train--test split. The retained-direction counts and sparse masks follow the SONICOM upsampling protocol used by Hu et al. for HRTFformer, within the broader LAP upsampling benchmark context \cite{Hu2026HRTFformer,Hogg2025LAPUpsampling}. RANF, FSP-AE, and the interpolation methods use the same 41 held-out subjects and sparse masks. The test identifiers and retained coordinates are archived with the evaluation outputs. The magnitude representation has 128 positive-frequency bins per ear after removal of the DC bin, giving 256 binaural magnitude values per direction on a dense grid of 793 directions.
+The evaluation uses the SONICOM HRTF dataset \cite{Engel2023} with a 162/41 train--test split. The retained-direction counts and sparse masks follow the SONICOM upsampling protocol used by Hu et al. for HRTFformer, within the broader LAP upsampling benchmark context \cite{Hu2026HRTFformer,Hogg2025LAPUpsampling}. RANF, FSP-AE, and the interpolation methods use the same 41 held-out subjects and sparse masks. The magnitude representation has 128 positive-frequency bins per ear after removal of the DC bin, giving 256 binaural magnitude values per direction on a dense grid of 793 directions.
 
-Four sparse-to-dense conditions are evaluated: \(100\rightarrow793\), \(19\rightarrow793\), \(5\rightarrow793\), and \(3\rightarrow793\). The same retained directions are used for every method and subject within each condition.
+Four sparse-to-dense conditions are evaluated: \(100\rightarrow793\), \(19\rightarrow793\), \(5\rightarrow793\), and \(3\rightarrow793\). The same retained directions are used for every method and subject within each condition (Fig.~\ref{fig:sampling_scheme}).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/evaluation/sampling_scheme_overview.pdf}
+    \caption[Dense and sparse SONICOM sampling schemes]{Dense SONICOM evaluation grid and retained sparse sampling schemes used for the four upsampling conditions. Grey points denote the dense 793-direction target grid; coloured points denote retained directions.}
+    \label{fig:sampling_scheme}
+\end{figure}
 
 All Fisher-tensor fitting and AIRM comparison are performed on the unique physical grid. Duplicate coordinate entries introduced by an implementation layout receive no additional weight.
 
 \subsection{Compared Reconstruction Methods}
-The evaluation requires a reconstructed HRTF field on the common evaluation grid. The reported comparison includes:
+The evaluation requires a reconstructed HRTF field on the common evaluation grid. The SUpDEq configurations follow the directional-equalization approach of P\"orschmann et al. \cite{Poerschmann2019SUpDEq}. The reported comparison includes:
 \begin{enumerate}
     \item \textbf{SUpDEq-SH:} SUpDEq preprocessing followed by SH interpolation.
     \item \textbf{SUpDEq-MCA:} the published Magnitude-Corrected and Time-Aligned configuration, which uses the same SH interpolation stage and then applies magnitude correction.
     \item \textbf{Natural- and barycentric-MCA variants:} explicitly labelled \(6\,\mathrm{dB}\)-limited SUpDEq variants using natural-neighbour and barycentric interpolation, respectively.
-    \item \textbf{RANF:} a retrieval-augmented neural field that predicts magnitude and ITD and reconstructs HRIRs using a minimum-phase representation with ITD compensation \cite{Masuyama2025RANF,Masuyama2025ICASSPRANF}.
+    \item \textbf{RANF:} a retrieval-augmented neural field that predicts magnitude and ITD and reconstructs HRIRs using a minimum-phase representation with ITD compensation \cite{Masuyama2026RANF,Masuyama2025ICASSPRANF}.
     \item \textbf{FSP-AE:} a neural network conditioned on source position and frequency that predicts HRTF magnitude and ITD before HRIR reconstruction \cite{Ito2025FSPAE}.
 \end{enumerate}
 The natural-neighbour variant uses Voronoi-weighted interpolation as implemented by the SFS/SUpDEq routines. SUpDEq-Bary-MCA is undefined at three retained directions because they cannot form the required closed spherical hull; this condition is marked not applicable.
@@ -573,7 +580,7 @@ Figure~\ref{fig:bayesian_subject_distributions} reports subject-wise distributio
 \FloatBarrier
 
 \subsection{Metric Relationships}
-Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesian-observer summaries across the 943 completed reported rows. Because these rows form a repeated subject--method--condition design, inferential \(p\)-values are not computed by treating them as independent samples. Table~\ref{tab:metric_correlations} instead reports correlations over the 23 completed method--retention means, together with subject-cluster bootstrap intervals for the corresponding row-wise Spearman coefficients. AIRM and LSD have a weak linear association but a strong rank association, indicating that the ordering of reconstruction quality is substantially shared even though the absolute scales are not linearly equivalent. AIRM is also associated with relative local polar RMS and relative lateral RMS. These relationships are approximately monotonic, particularly as extreme sparse conditions degrade, but they are not one-to-one. Several methods with similar LSD differ appreciably in AIRM, and some methods with comparable Bayesian localisation summaries differ in tensor discrepancy. These cases support joint reporting of Fisher-tensor and established evaluation metrics.
+Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesian-observer summaries across the 943 completed reported rows. Because these rows form a repeated subject--method--condition design, inferential \(p\)-values are not computed by treating the rows as independent samples. Table~\ref{tab:metric_correlations} instead reports correlations over the 23 completed method--retention means, together with subject-cluster bootstrap intervals for the corresponding row-wise Spearman coefficients. AIRM and LSD have a weak linear association but a strong rank association, indicating that the ordering of reconstruction quality is substantially shared even though the absolute scales are not linearly equivalent. AIRM is also strongly rank-associated with the Bayesian-observer summaries. These relationships are approximately monotonic, particularly as extreme sparse conditions degrade, but they are not one-to-one. Several methods with similar LSD differ appreciably in AIRM, and some methods with comparable Bayesian localisation summaries differ in tensor discrepancy. These cases support joint reporting of Fisher-tensor and established evaluation metrics.
 
 \input{tables/evaluation/metric_correlation_table.tex}
 
@@ -611,77 +618,74 @@ The Fisher tensor defines a direction-dependent metric on the sphere. A future o
 \begin{thebibliography}{99}
 
 \bibitem{Dayan2001}
-Dayan, Peter, and L. F. Abbott. \textit{Theoretical Neuroscience}. MIT Press: Cambridge, MA, 2001.
+P. Dayan and L. F. Abbott, \textit{Theoretical Neuroscience}. Cambridge, MA, USA: MIT Press, 2001.
 
 \bibitem{Rao1945}
-Rao, C. R. ``Information and the accuracy attainable in the estimation of statistical parameters.'' \textit{Bulletin of the Calcutta Mathematical Society}, vol. 37, no. 3, 1945, pp. 81--91.
+C. R. Rao, ``Information and the accuracy attainable in the estimation of statistical parameters,'' \textit{Bull. Calcutta Math. Soc.}, vol. 37, no. 3, pp. 81--91, 1945.
 
 \bibitem{Starch1905}
-Starch, Daniel. ``Perimetry of the localization of sound.'' \textit{Psychological Review: Monograph Supplements}, vol. 6, no. 4, 1905, pp. 1--45.
+D. Starch, ``Perimetry of the localization of sound,'' \textit{Psychol. Rev. Monogr. Suppl.}, vol. 6, no. 4, pp. 1--45, 1905.
 
 \bibitem{StevensonHoare2020}
-Stevenson-Hoare, Joshua Oscar. \textit{Auditory Spatial Precision in the Horizontal Plane}. Ph.D. dissertation, School of Psychology, Cardiff University, 2020.
+J. O. Stevenson-Hoare, \textit{Auditory Spatial Precision in the Horizontal Plane}, Ph.D. dissertation, School of Psychology, Cardiff University, 2020.
 
 \bibitem{Grantham2003}
-Grantham, D. Wesley, Benjamin W. Y. Hornsby, and Eric A. Erpenbeck. ``Auditory spatial resolution in horizontal, vertical, and diagonal planes.'' \textit{The Journal of the Acoustical Society of America}, vol. 114, no. 2, 2003, pp. 1009--1022. doi:10.1121/1.1590970.
+D. W. Grantham, B. W. Y. Hornsby, and E. A. Erpenbeck, ``Auditory spatial resolution in horizontal, vertical, and diagonal planes,'' \textit{J. Acoust. Soc. Am.}, vol. 114, no. 2, pp. 1009--1022, 2003, doi:10.1121/1.1590970.
 
 \bibitem{Carlile1997}
-Carlile, Simon, Philip Leong, and Stephanie Hyams. ``The nature and distribution of errors in sound localisation by human listeners.'' \textit{Hearing Research}, vol. 114, no. 1--2, 1997, pp. 179--196.
+S. Carlile, P. Leong, and S. Hyams, ``The nature and distribution of errors in sound localization by human listeners,'' \textit{Hear. Res.}, vol. 114, nos. 1--2, pp. 179--196, 1997, doi:10.1016/S0378-5955(97)00161-5.
 
 \bibitem{Harper2004}
-Harper, Nicol S., and David McAlpine. ``Optimal neural population coding of an auditory spatial cue.'' \textit{Nature}, vol. 430, no. 7000, 2004, pp. 682--686.
+N. S. Harper and D. McAlpine, ``Optimal neural population coding of an auditory spatial cue,'' \textit{Nature}, vol. 430, no. 7000, pp. 682--686, 2004, doi:10.1038/nature02768.
 
 \bibitem{Pavao2020}
-Pav\~{a}o, Rodrigo, Elyse S. Sussman, Brian J. Fischer, and Jos\'e L. Pe\~{n}a. ``Natural ITD statistics predict human auditory spatial perception.'' \textit{Elife}, vol. 9, 2020, p. e51927.
+R. Pav\~ao, E. S. Sussman, B. J. Fischer, and J. L. Pe\~na, ``Natural ITD statistics predict human auditory spatial perception,'' \textit{eLife}, vol. 9, Art. no. e51927, 2020, doi:10.7554/eLife.51927.
 
 \bibitem{Barumerli2023}
-Barumerli, Roberto, Piotr Majdak, Michele Geronazzo, David Meijer, Federico Avanzini, and Robert Baumgartner. ``A Bayesian model for human directional localization of broadband static sound sources.'' \textit{Acta Acustica}, vol. 7, 2023, p. 12.
+R. Barumerli, P. Majdak, M. Geronazzo, D. Meijer, F. Avanzini, and R. Baumgartner, ``A Bayesian model for human directional localization of broadband static sound sources,'' \textit{Acta Acust.}, vol. 7, Art. no. 12, 2023, doi:10.1051/aacus/2023006.
 
 \bibitem{Engel2023}
-Engel, I., Daugintis, R., Vicente, T., Hogg, A. O. T., Pauwels, J., Tournier, A. J., and Picinali, L. ``The SONICOM HRTF Dataset.'' \textit{Journal of the Audio Engineering Society}, vol. 71, pp. 241--253, 2023. doi:10.17743/jaes.2022.0066.
+I. Engel \textit{et al.}, ``The SONICOM HRTF Dataset,'' \textit{J. Audio Eng. Soc.}, vol. 71, no. 5, pp. 241--253, 2023, doi:10.17743/jaes.2022.0066.
 
 \bibitem{Hu2026HRTFformer}
 X. Hu, J. Li, S. Zhang, S. Goetz, L. Picinali, O. B. Akan, and A. O. T. Hogg,
-``HRTFformer: A spatially-aware transformer for individual HRTF upsampling in immersive audio rendering,''
-arXiv:2510.01891, 2026.
+``HRTFformer: A Spatially-Aware Transformer for Individual HRTF Upsampling in Immersive Audio Rendering,''
+arXiv:2510.01891, 2026, doi:10.48550/arXiv.2510.01891.
 
 \bibitem{Hogg2025LAPUpsampling}
 A. O. T. Hogg, R. Barumerli, R. Daugintis, K. C. Poole, F. Brinkmann, L. Picinali, and M. Geronazzo,
-``Listener Acoustic Personalisation Challenge--LAP24: Head-related transfer function upsampling,''
-\textit{IEEE Open Journal of Signal Processing}, 2025.
+``Listener Acoustic Personalization Challenge--LAP24: Head-Related Transfer Function Upsampling,''
+\textit{IEEE Open J. Signal Process.}, vol. 6, pp. 926--941, 2025, doi:10.1109/OJSP.2025.3588776.
 
+
+\bibitem{Poerschmann2019SUpDEq}
+C. P\"orschmann, J. M. Arend, and F. Brinkmann, ``Directional Equalization of Sparse Head-Related Transfer Function Sets for Spatial Upsampling,'' \textit{IEEE/ACM Trans. Audio Speech Lang. Process.}, vol. 27, no. 6, pp. 1060--1071, 2019, doi:10.1109/TASLP.2019.2908057.
 \bibitem{Baumgartner2014}
-Baumgartner, R., Majdak, P., and Laback, B. ``Modeling sound-source localization in sagittal planes for human listeners.'' \textit{The Journal of the Acoustical Society of America}, vol. 136, no. 2, pp. 791--802, 2014.
+R. Baumgartner, P. Majdak, and B. Laback, ``Modeling sound-source localization in sagittal planes for human listeners,'' \textit{J. Acoust. Soc. Am.}, vol. 136, no. 2, pp. 791--802, 2014, doi:10.1121/1.4887447.
 
 \bibitem{Reijniers2014}
 J. Reijniers, D. Vanderelst, C. Jin, S. Carlile, and H. Peremans,
 ``An ideal-observer model of human sound localization,''
-\textit{Biological Cybernetics}, vol. 108, no. 2, pp. 169--181, 2014.
+\textit{Biol. Cybern.}, vol. 108, no. 2, pp. 169--181, 2014, doi:10.1007/s00422-014-0588-4.
 
-\bibitem{Masuyama2025RANF}
+\bibitem{Masuyama2026RANF}
 Y. Masuyama, G. Wichern, F. G. Germain, C. Ick, and J. Le Roux,
-``RANF: Neural field-based HRTF spatial upsampling with retrieval augmentation and parameter efficient fine-tuning,''
-\textit{IEEE Open Journal of Signal Processing}, 2025.
+``RANF: Neural Field-Based HRTF Spatial Upsampling With Retrieval Augmentation and Parameter Efficient Fine-Tuning,''
+\textit{IEEE Open J. Signal Process.}, vol. 7, pp. 32--41, 2026, doi:10.1109/OJSP.2025.3640517.
 
 \bibitem{Masuyama2025ICASSPRANF}
 Y. Masuyama, G. Wichern, F. G. Germain, C. Ick, and J. Le Roux,
 ``Retrieval-Augmented Neural Field for HRTF Upsampling and Personalization,''
-in \textit{Proc. IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, Apr. 2025.
+in \textit{Proc. IEEE Int. Conf. Acoust., Speech Signal Process. (ICASSP)}, 2025, pp. 1--5, doi:10.1109/ICASSP49660.2025.10889481.
 
 \bibitem{Ito2025FSPAE}
 Y. Ito, T. Nakamura, S. Koyama, S. Sakamoto, and H. Saruwatari,
 ``Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency,''
-\textit{IEEE Open Journal of Signal Processing}, vol. 6, pp. 1109--1123, 2025, doi:10.1109/OJSP.2025.3613132.
+\textit{IEEE Open J. Signal Process.}, vol. 6, pp. 1109--1123, 2025, doi:10.1109/OJSP.2025.3613132.
 
 \bibitem{Middlebrooks1999}
-Middlebrooks, J. C. ``Virtual localization improved by scaling nonindividualized external-ear transfer functions in frequency.'' \textit{The Journal of the Acoustical Society of America}, vol. 106, no. 3, pp. 1493--1510, 1999.
+J. C. Middlebrooks, ``Virtual localization improved by scaling nonindividualized external-ear transfer functions in frequency,'' \textit{J. Acoust. Soc. Am.}, vol. 106, no. 3, pp. 1493--1510, 1999, doi:10.1121/1.427147.
 
 \end{thebibliography}
 
 \end{document}
-
-
-
-
-
-

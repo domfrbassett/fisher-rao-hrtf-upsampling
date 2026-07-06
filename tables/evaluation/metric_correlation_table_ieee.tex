@@ -1,8 +1,10 @@
-\begin{table*}[t]
+﻿\begin{table}[!t]
 \centering
-\caption{Association between mean AIRM and established evaluation metrics. Correlations are reported over the 23 completed method--retention means; the final column gives a 95\% subject-cluster bootstrap interval for the corresponding row-wise Spearman coefficient, preserving all within-subject repeated measurements.}
+\caption{Association between mean AIRM and established evaluation metrics. Correlations are computed over the 23 completed method--retention means; the final column gives a 95\% subject-cluster bootstrap interval for the corresponding row-wise Spearman coefficient.}
 \label{tab:metric_correlations}
-\small
+\scriptsize
+\setlength{\tabcolsep}{2.0pt}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
 Metric & Pearson $r$ & Spearman $\rho$ & Row-wise $\rho$ 95\% CI \\
@@ -13,5 +15,6 @@ Relative lateral RMS & 0.97 & 0.95 & [0.86, 0.89] \\
 Relative local polar RMS & 0.47 & 0.85 & [0.76, 0.81] \\
 Relative quadrant error & 0.40 & 0.83 & [0.68, 0.73] \\
 \bottomrule
-\end{tabular}
-\end{table*}
+\end{tabular}%
+}
+\end{table}

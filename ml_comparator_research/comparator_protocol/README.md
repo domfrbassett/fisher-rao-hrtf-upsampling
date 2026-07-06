@@ -9,7 +9,7 @@ Included files:
 - `prepare_sonicom_layout.py`: creates local work layouts expected by HRTFformer-style loaders and RANF.
 - `run_ranf_hu_comparator.py`: runs RANF using the shared split, sparse masks, retrieval matrices, and output conventions.
 
-The generated `outputs/` and `work/` folders are intentionally ignored by git.
+The generated `outputs/` and `work/` folders are excluded from version control.
 
 ## RANF Upstream Code
 
@@ -21,7 +21,7 @@ The wrapper expects a lightly patched RANF checkout so that SONICOM masks, retri
 - `ranf/compute_spec_ild_itd_for_sonicom_datasets.py`
 - `ranf/utils/sonicom_dataset_retrieval.py`
 
-Those changes are not vendored here because they modify the external method implementation. If reproducing the exact run, apply the compatibility patch to a local RANF checkout, then keep that patched checkout outside this repository.
+Those changes are not included here because they modify the external method implementation. If reproducing the exact run, apply the compatibility patch to a local RANF checkout, then keep that patched checkout outside this repository.
 
 ## Typical Order
 
