@@ -11,20 +11,10 @@ from matplotlib.patches import Patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RESULT_ROOT = ROOT / "results" / "barumerli_pge_fisher_final"
+RESULT_ROOT = ROOT / "results" / "barumerli_pge_fisher_hu_raw_ml_final"
 SUMMARY_CSV = RESULT_ROOT / "full_evaluation_summary.csv"
-FSP_AE_SUMMARY_CSV = (
-    ROOT
-    / "results"
-    / "learning_comparator_extension"
-    / "full_evaluation_summary.csv"
-)
-FSP_AE_LSD_16K_CSV = (
-    ROOT
-    / "results"
-    / "learning_comparator_extension"
-    / "fsp_ae_lsd_20_16k.csv"
-)
+FSP_AE_SUMMARY_CSV = ROOT / "results" / "__not_used__" / "full_evaluation_summary.csv"
+FSP_AE_LSD_16K_CSV = RESULT_ROOT / "fsp_ae_lsd_20_16k.csv"
 SAM_CSV = ROOT / "results" / "ml_lap_sam_metrics.csv"
 FIG_DIR = ROOT / "figures" / "evaluation"
 TABLE_DIR = ROOT / "tables" / "evaluation"
@@ -851,5 +841,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 

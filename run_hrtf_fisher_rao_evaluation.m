@@ -1,4 +1,4 @@
-%% run_hrtf_fisher_rao_evaluation.m
+﻿%% run_hrtf_fisher_rao_evaluation.m
 % Full evaluation pipeline for HRTF spatial upsampling. The script computes:
 %   - signal-level metrics
 %   - AMT Bayesian localisation metrics
@@ -28,7 +28,7 @@ dependencyRoot = fullfile(studyRoot, "dependencies");
 supdeqRoot = fullfile(dependencyRoot, "SUpDEq-master", "SUpDEq-master");
 
 cfg.datasetRoot = fullfile(dependencyRoot, "Sonicom_HRTFs");
-cfg.resultsRoot = fullfile(studyRoot, "results", "barumerli_pge_fisher_final");
+cfg.resultsRoot = fullfile(studyRoot, "results", "barumerli_pge_fisher_hu_raw_ml_final");
 cfg.sofaFilePattern = "*_FreeFieldCompMinPhase_48kHz.sofa";
 
 datasetRootOverride = string(getenv("FISHERRAO_DATASET_ROOT"));
@@ -2842,6 +2842,7 @@ function azEl = plotting_azimuth_elevation(azEl)
     azEl(:, 1) = mod(azEl(:, 1) + 180, 360) - 180;
 
 end
+
 
 
 

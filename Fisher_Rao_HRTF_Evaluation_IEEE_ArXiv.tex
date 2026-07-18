@@ -368,7 +368,7 @@ Using the HRTF-magnitude notation defined above, the binaural log-spectral disto
 \right)^2\Biggr]^{1/2}.
 \end{aligned}
 \end{equation}
-LSD serves as the principal signal-domain metric because it directly measures spectral magnitude agreement. For band-limited reconstructions, the sum over \(k\) is restricted to the reconstructed spectral support; FSP-AE is evaluated over 20 Hz--16 kHz, matching its published configuration.
+LSD serves as the principal signal-domain metric because it directly measures spectral magnitude agreement. For the HRIR/SOFA reconstructions evaluated here, LSD is computed over the common LAP/SAM band from 20 Hz to 20 kHz, except for FSP-AE, for which the upper limit is 16 kHz to match the model's configured spectral support.
 
 \subsection{Interaural Level Difference Error}
 ILD error measures binaural level reconstruction. Define the frequency-averaged HRTF ILD
@@ -455,7 +455,7 @@ The implementation uses AMT \path{barumerli2023} with DTF feature extraction, ma
 
 \section{Evaluation Procedure}
 \subsection{Data and Spatial Conditions}\label{sec:data}
-The evaluation uses the SONICOM HRTF dataset \cite{Engel2023} with a 162/41 train--test split. The retained-direction counts and sparse masks follow the SONICOM upsampling protocol used by Hu et al. for HRTFformer, within the broader LAP upsampling benchmark context \cite{Hu2026HRTFformer,Hogg2025LAPUpsampling}. RANF, FSP-AE, and the interpolation methods use the same 41 held-out subjects and sparse masks. The magnitude representation has 128 positive-frequency bins per ear after removal of the DC bin, giving 256 binaural magnitude values per direction on a dense grid of 793 directions.
+The evaluation uses the SONICOM HRTF dataset \cite{Engel2023} with a 162/41 train--test split. The retained-direction counts and sparse masks follow the SONICOM upsampling protocol used by Hu et al. for HRTFformer, within the broader LAP upsampling benchmark context \cite{Hu2026HRTFformer,Hogg2025LAPUpsampling}. RANF, FSP-AE, and the interpolation methods use the same 41 held-out subjects and sparse masks. The test identifiers and retained coordinates are archived with the evaluation outputs. The magnitude representation has 128 positive-frequency bins per ear after removal of the DC bin, giving 256 binaural magnitude values per direction on a dense grid of 793 directions.
 
 Four sparse-to-dense conditions are evaluated: \(100\rightarrow793\), \(19\rightarrow793\), \(5\rightarrow793\), and \(3\rightarrow793\). The same retained directions are used for every method and subject within each condition (Fig.~\ref{fig:sampling_scheme}).
 
@@ -474,7 +474,7 @@ The evaluation requires a reconstructed HRTF field on the common evaluation grid
     \item \textbf{SUpDEq-SH:} SUpDEq preprocessing followed by SH interpolation.
     \item \textbf{SUpDEq-MCA:} the published Magnitude-Corrected and Time-Aligned configuration, which uses the same SH interpolation stage and then applies magnitude correction.
     \item \textbf{Natural- and barycentric-MCA variants:} explicitly labelled \(6\,\mathrm{dB}\)-limited SUpDEq variants using natural-neighbour and barycentric interpolation, respectively.
-    \item \textbf{RANF:} a retrieval-augmented neural field that predicts magnitude and ITD and reconstructs HRIRs using a minimum-phase representation with ITD compensation \cite{Masuyama2026RANF,Masuyama2025ICASSPRANF}.
+    \item \textbf{RANF:} a retrieval-augmented neural field that predicts magnitude and ITD and reconstructs HRIRs using a minimum-phase representation with ITD compensation \cite{Masuyama2025RANF,Masuyama2025ICASSPRANF}.
     \item \textbf{FSP-AE:} a neural network conditioned on source position and frequency that predicts HRTF magnitude and ITD before HRIR reconstruction \cite{Ito2025FSPAE}.
 \end{enumerate}
 The natural-neighbour variant uses Voronoi-weighted interpolation as implemented by the SFS/SUpDEq routines. SUpDEq-Bary-MCA is undefined at three retained directions because they cannot form the required closed spherical hull; this condition is marked not applicable.
@@ -498,7 +498,7 @@ The reported comparison comprises 984 method--condition--subject rows: 41 subjec
 \end{figure*}
 
 \subsection{Fisher-Tensor Results}
-Figure~\ref{fig:airm_heatmap} reports cohort-mean AIRM for the six reconstruction methods. RANF gives the lowest mean AIRM at every retention condition, ranging from 0.46 at \(N=100\) to 0.68 at \(N=3\). FSP-AE is close to RANF at \(N=100\) and is second-best at \(N=19\), \(N=5\), and \(N=3\). Among the interpolation methods, SUpDEq-Natural-MCA and SUpDEq-Bary-MCA are strongest at \(N=100\) and \(N=19\), but SUpDEq-Natural-MCA produces very large AIRM discrepancies at \(N=5\) and \(N=3\). SUpDEq-Bary-MCA is not applicable at \(N=3\).
+Figure~\ref{fig:airm_heatmap} reports cohort-mean AIRM for the six reconstruction methods. RANF gives the lowest mean AIRM at every retention condition, ranging from 0.48 at \(N=100\) to 0.68 at \(N=3\). FSP-AE is close to RANF at \(N=100\) and is second-best at \(N=19\), \(N=5\), and \(N=3\). Among the interpolation methods, SUpDEq-Natural-MCA and SUpDEq-Bary-MCA are strongest at \(N=100\) and \(N=19\), but SUpDEq-Natural-MCA produces very large AIRM discrepancies at \(N=5\) and \(N=3\). SUpDEq-Bary-MCA is not applicable at \(N=3\).
 
 AIRM depends on local derivatives and on tensor anisotropy and orientation, so its method ranking can differ from rankings based on LSD or Bayesian-observer summaries.
 
@@ -528,7 +528,7 @@ Figure~\ref{fig:bayesian_subject_distributions} reports subject-wise distributio
 \end{figure}
 
 \subsection{Metric Relationships}
-Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesian-observer summaries across the 943 completed rows. Because the rows form a repeated subject--method--condition design, Table~\ref{tab:metric_correlations} reports correlations over the 23 method--retention means and gives subject-cluster bootstrap intervals for row-wise Spearman coefficients. AIRM is strongly rank-associated with LSD and with the Bayesian-observer summaries, but the relationships are not linear or one-to-one: methods with similar LSD or localisation summaries can differ appreciably in Fisher-tensor discrepancy.
+Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesian-observer summaries across the 943 completed rows. Because the rows form a repeated subject--method--condition design, inferential \(p\)-values are not computed by treating the rows as independent samples. Table~\ref{tab:metric_correlations} instead reports correlations over the 23 completed method--retention means, together with subject-cluster bootstrap intervals for the corresponding row-wise Spearman coefficients. AIRM and LSD have a weak linear association but a strong rank association, indicating that the ordering of reconstruction quality is substantially shared even though the absolute scales are not linearly equivalent. AIRM is also strongly rank-associated with the Bayesian-observer summaries. These relationships are approximately monotonic, but they are not one-to-one. Several methods with similar LSD differ appreciably in AIRM, and some methods with comparable Bayesian localisation summaries differ in tensor discrepancy.
 
 \input{tables/evaluation/metric_correlation_table_ieee.tex}
 
@@ -540,18 +540,18 @@ Figure~\ref{fig:metric_relationships} compares AIRM with conventional and Bayesi
 \end{figure}
 
 \subsection{Local Discrimination-Threshold Plausibility}
-AIRM is a tensor distance rather than an angular threshold. To express selected tensors in psychophysical units, the \(d'=1\) displacement was projected onto lateral tangent directions at \((0^\circ,0^\circ)\), \((45^\circ,0^\circ)\), and \((90^\circ,0^\circ)\), and onto vertical tangent directions at \((0^\circ,0^\circ)\) and \((0^\circ,45^\circ)\). Table~\ref{tab:local_threshold_plausibility} reports these scalar projections in degrees. They are model-derived thresholds under the Barumerli/Reijniers cue-noise convention, not fitted behavioural MAAs.
+AIRM is a tensor distance, not itself an angular threshold. To express selected Fisher tensors in a more directly psychophysical unit, the \(d'=1\) threshold defined above was evaluated along lateral unit tangent directions at \((0^\circ,0^\circ)\), \((45^\circ,0^\circ)\), and \((90^\circ,0^\circ)\), and along vertical unit tangent directions at \((0^\circ,0^\circ)\) and \((0^\circ,45^\circ)\). Coordinate pairs denote azimuth and elevation. Values are converted from radians to degrees. Table~\ref{tab:local_threshold_plausibility} reports scalar projections of the discrimination ellipse construction in Fig.~\ref{fig:sonicom_kent}: model-derived thresholds under the Barumerli/Reijniers cue-noise convention, not fitted behavioural minimum audible angles.
 
 \input{tables/evaluation/local_threshold_plausibility_table_ieee.tex}
 
-The dense reference predicts increasing lateral thresholds from frontal to lateral directions: \(1.70^\circ\) at \((0^\circ,0^\circ)\), \(3.08^\circ\) at \((45^\circ,0^\circ)\), and \(6.78^\circ\) at \((90^\circ,0^\circ)\). Its vertical thresholds are \(4.44^\circ\) at \((0^\circ,0^\circ)\) and \(5.71^\circ\) at \((0^\circ,45^\circ)\). This ordering is consistent with broadband spatial-resolution data: Stevenson-Hoare reports horizontal-plane means of approximately \(1.5^\circ\), \(2.7^\circ\), and \(7.2^\circ\) at the same azimuths \cite{StevensonHoare2020}, while Grantham et al. report mean MAAs of \(1.6^\circ\), \(2.8^\circ\), and \(6.5^\circ\) for horizontal, diagonal, and vertical wideband-noise trajectories \cite{Grantham2003}. RANF best preserves the five local thresholds at \(N=19\); at \(N=5\), SUpDEq-Bary-MCA and RANF are closest.
+The dense reference predicts increasing lateral thresholds from frontal to lateral directions, from \(1.70^\circ\) at \((0^\circ,0^\circ)\) to \(6.78^\circ\) at \((90^\circ,0^\circ)\). The vertical threshold increases from \(4.44^\circ\) at \((0^\circ,0^\circ)\) to \(5.71^\circ\) at \((0^\circ,45^\circ)\). This ordering is consistent with broadband spatial-resolution data. Stevenson-Hoare measured horizontal-plane MAAs at azimuths from \(0^\circ\) to \(345^\circ\) and Fig.~14 shows mean thresholds, collapsed over left and right, of approximately \(1.5^\circ\) at \(0^\circ\), \(2.7^\circ\) at \(45^\circ\), and \(7.2^\circ\) at \(90^\circ\) \cite{StevensonHoare2020}. Grantham et al. measured adaptive two-interval thresholds for stationary wideband-noise pairs drawn from front-centred \(180^\circ\) trajectories in the horizontal, \(60^\circ\) diagonal, and vertical planes, reporting mean MAAs of \(1.6^\circ\), \(2.8^\circ\), and \(6.5^\circ\), respectively, in screened listeners \cite{Grantham2003}. RANF preserves the five local thresholds most closely at \(N=19\); at \(N=5\), SUpDEq-Bary-MCA and RANF are closest. This local projection complements AIRM by translating selected tensor discrepancies into angular units.
 \section{Discussion and Future Work}
 
 Bivariate Fisher information evaluates the spatial derivatives of the selected auditory cues. AIRM measures reconstruction-induced changes in the scale, anisotropy, and orientation of the resulting tensors.
 
 The Bayesian localisation model predicts response distributions from sensory evidence, a prior, a decision rule, and response variability. The Fisher tensor describes local cue sensitivity under the Gaussian internal-noise model. Their results quantify simulated pointing and local discrimination, respectively.
 
-The high-sparsity results identify limits of the interpolation methods. Three retained directions do not satisfy the closed-hull requirement of SUpDEq-Bary-MCA. SH-based and natural-neighbour interpolation can produce severe Fisher-tensor divergence at extreme sparsity even when conventional error summaries remain finite. RANF gives the strongest overall performance, while FSP-AE provides a second learning-based comparator with moderate Fisher-tensor error despite higher LSD.
+The high-sparsity results identify limits of the interpolation methods. Three retained directions do not satisfy the closed-hull requirement of SUpDEq-Bary-MCA. SH-based and natural-neighbour interpolation can produce severe Fisher-tensor divergence at extreme sparsity even when conventional error summaries remain finite. RANF gives the strongest overall performance, while FSP-AE provides a second learning-based comparator with stable Fisher-tensor behaviour despite higher LSD.
 
 The present Fisher analysis uses direction-independent cue-noise weights, so spatial variation in predicted discriminability arises from the HRTF cue gradients rather than from spatially varying internal noise. A more general observer model could allow the cue-noise covariance to vary with source direction. This would distinguish anisotropy arising from the acoustic cue field from anisotropy arising from direction-dependent sensory reliability. This extension is distinct from the equatorial prior in the Barumerli model: the prior biases point estimates towards more probable source regions, whereas direction-dependent cue noise would change the local discrimination threshold itself. The distinction matters when comparing frontal, lateral, and elevated source regions, where acuity and response bias may vary independently.
 
@@ -611,9 +611,9 @@ J. Reijniers, D. Vanderelst, C. Jin, S. Carlile, and H. Peremans,
 ``An ideal-observer model of human sound localization,''
 \textit{Biol. Cybern.}, vol. 108, no. 2, pp. 169--181, 2014, doi:10.1007/s00422-014-0588-4.
 
-\bibitem{Masuyama2026RANF}
+\bibitem{Masuyama2025RANF}
 Y. Masuyama, G. Wichern, F. G. Germain, C. Ick, and J. Le Roux,
-``RANF: Neural Field-Based HRTF Spatial Upsampling With Retrieval Augmentation and Parameter Efficient Fine-Tuning,''
+``RANF: Neural field-based HRTF spatial upsampling with retrieval augmentation and parameter efficient fine-tuning,''
 \textit{IEEE Open J. Signal Process.}, vol. 7, pp. 32--41, 2026, doi:10.1109/OJSP.2025.3640517.
 
 \bibitem{Masuyama2025ICASSPRANF}
@@ -632,3 +632,4 @@ J. C. Middlebrooks, ``Virtual localization improved by scaling nonindividualized
 \end{thebibliography}
 
 \end{document}
+

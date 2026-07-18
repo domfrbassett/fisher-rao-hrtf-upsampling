@@ -10,21 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 PRIMARY_SUMMARY = (
     ROOT
     / "results"
-    / "barumerli_pge_fisher_final"
+    / "barumerli_pge_fisher_hu_raw_ml_final"
     / "full_evaluation_summary.csv"
 )
-FSP_AE_SUMMARY = (
-    ROOT
-    / "results"
-    / "learning_comparator_extension"
-    / "full_evaluation_summary.csv"
-)
-FSP_AE_LSD_16K = (
-    ROOT
-    / "results"
-    / "learning_comparator_extension"
-    / "fsp_ae_lsd_20_16k.csv"
-)
+FSP_AE_SUMMARY = ROOT / "results" / "__not_used__" / "full_evaluation_summary.csv"
+FSP_AE_LSD_16K = ROOT / "results" / "barumerli_pge_fisher_hu_raw_ml_final" / "fsp_ae_lsd_20_16k.csv"
 AUDIT_CSV = ROOT / "results" / "audits" / "metric_correlations.csv"
 TABLE_TEX = ROOT / "tables" / "evaluation" / "metric_correlation_table.tex"
 TABLE_TEX_IEEE = ROOT / "tables" / "evaluation" / "metric_correlation_table_ieee.tex"
@@ -275,3 +265,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
