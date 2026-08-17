@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INPUT_NPZ = ROOT / "results" / "audits" / "seeded_41_median_fisher_and_covariance.npz"
 OUTPUT_DIR = ROOT / "figures" / "evaluation"
 OUTPUT_STEM = "median_crb_ellipses"
+VISIBLE_TOLERANCE = 1.0e-9
 
 
 def nearest_spd(tensor: np.ndarray, floor: float = 1.0e-12) -> np.ndarray:
@@ -115,9 +116,9 @@ def render_single_view(
 
     for idx in indices:
         r = cart[idx]
-        if float(np.dot(r, camera)) <= 0.0:
-            continue
         curve = ellipse_curve(r, covariance[idx], scale)
+        if float(np.max(curve @ camera)) < -VISIBLE_TOLERANCE:
+            continue
         ax.plot(
             radius * curve[:, 0],
             radius * curve[:, 1],

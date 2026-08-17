@@ -18,6 +18,7 @@ INPUT_CSV = ROOT / "results" / "audits" / "barumerli_sonicom41_median_tensor.csv
 OUTPUT_ROOT = ROOT / "figures" / "diagnostics" / "barumerli_sonicom41"
 
 ELLIPSE_SCALE = 1.0
+VISIBLE_TOLERANCE = 1.0e-9
 PLOT_ELEVATIONS = {-20.0, 0.0, 20.0, 40.0}
 
 
@@ -159,10 +160,9 @@ def render_single_view_image(
     draw_sphere(ax, radius)
 
     for (azimuth, elevation), covariance in zip(positions, covariances):
-        centre = azel_to_cart(float(azimuth), float(elevation))
-        if float(np.dot(centre, camera)) <= 0.0:
-            continue
         curve = ellipse_curve(float(azimuth), float(elevation), covariance)
+        if float(np.max(curve @ camera)) < -VISIBLE_TOLERANCE:
+            continue
         ax.plot(
             radius * curve[:, 0],
             radius * curve[:, 1],
