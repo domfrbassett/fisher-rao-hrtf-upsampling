@@ -14,9 +14,11 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{bm}
 
-\setlength{\textfloatsep}{7pt plus 2pt minus 2pt}
-\setlength{\floatsep}{7pt plus 2pt minus 2pt}
-\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{5pt plus 1pt minus 2pt}
+\setlength{\floatsep}{5pt plus 1pt minus 2pt}
+\setlength{\intextsep}{5pt plus 1pt minus 2pt}
+\setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{0pt}
 
 \title{Using Fisher Information to Evaluate the Preservation of Spatial Discriminability in HRTF Upsampling}
 \author{Dominic Bassett%
@@ -492,7 +494,7 @@ The reported comparison comprises 984 method--condition--subject rows: 41 subjec
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=0.76\textwidth]{figures/evaluation/airm_heatmap.pdf}
+    \includegraphics[width=0.70\textwidth]{figures/evaluation/airm_heatmap.pdf}
     \caption[Mean AIRM discrepancy over methods and retention conditions]{Mean Fisher-tensor AIRM discrepancy over the 41-subject cohort. Lower values indicate closer preservation of the dense-reference tensor field; the blank entry is the not-applicable \(N=3\) SUpDEq-Bary-MCA condition.}
     \label{fig:airm_heatmap}
 \end{figure*}
@@ -511,7 +513,7 @@ Conventional and Bayesian-observer metrics were computed for every completed met
 
 RANF has the lowest LSD throughout the evaluated retention conditions. FSP-AE has larger LSD than RANF, but is competitive with the interpolation baselines and remains spectrally stable as sparsity increases. It also avoids the severe Fisher-tensor degradation observed for several interpolation baselines. Among the interpolation methods, AIRM, LSD, and relative Bayesian-observer summaries do not always select the same reconstruction. The three evaluations measure tensor preservation, spectral reconstruction, and simulated localisation, respectively.
 
-\begin{figure}[H]
+\begin{figure}[!t]
     \centering
     \includegraphics[width=\columnwidth]{figures/evaluation/lsd_subject_boxplot.pdf}
     \caption[Subject-wise LSD distributions]{Subject-wise LSD distributions over the 41 held-out subjects. Boxes show medians and interquartile ranges; whiskers span the 5th--95th percentiles.}
@@ -544,20 +546,22 @@ AIRM is a tensor distance, not itself an angular threshold. To express selected 
 
 \input{tables/evaluation/local_threshold_plausibility_table_ieee.tex}
 
-The dense reference predicts increasing lateral thresholds from frontal to lateral directions, from \(1.70^\circ\) at \((0^\circ,0^\circ)\) to \(6.78^\circ\) at \((90^\circ,0^\circ)\). The vertical threshold increases from \(4.44^\circ\) at \((0^\circ,0^\circ)\) to \(5.71^\circ\) at \((0^\circ,45^\circ)\). This ordering is consistent with broadband spatial-resolution data. Stevenson-Hoare measured horizontal-plane MAAs at azimuths from \(0^\circ\) to \(345^\circ\) and Fig.~14 shows mean thresholds, collapsed over left and right, of approximately \(1.5^\circ\) at \(0^\circ\), \(2.7^\circ\) at \(45^\circ\), and \(7.2^\circ\) at \(90^\circ\) \cite{StevensonHoare2020}. Grantham et al. measured adaptive two-interval thresholds for stationary wideband-noise pairs drawn from front-centred \(180^\circ\) trajectories in the horizontal, \(60^\circ\) diagonal, and vertical planes, reporting mean MAAs of \(1.6^\circ\), \(2.8^\circ\), and \(6.5^\circ\), respectively, in screened listeners \cite{Grantham2003}. RANF preserves the five local thresholds most closely at \(N=19\); at \(N=5\), SUpDEq-Bary-MCA and RANF are closest. This local projection complements AIRM by translating selected tensor discrepancies into angular units.
+The dense reference predicts increasing lateral thresholds from frontal to lateral directions, from \(1.70^\circ\) at \((0^\circ,0^\circ)\) to \(6.78^\circ\) at \((90^\circ,0^\circ)\). The vertical threshold increases from \(4.44^\circ\) at \((0^\circ,0^\circ)\) to \(5.71^\circ\) at \((0^\circ,45^\circ)\). This ordering is consistent with broadband spatial-resolution data: Stevenson-Hoare's Fig.~14 gives horizontal-plane means, collapsed over left and right, of approximately \(1.5^\circ\), \(2.7^\circ\), and \(7.2^\circ\) at \(0^\circ\), \(45^\circ\), and \(90^\circ\), respectively \cite{StevensonHoare2020}, while Grantham et al. report \(1.6^\circ\), \(2.8^\circ\), and \(6.5^\circ\) for horizontal, \(60^\circ\) diagonal, and vertical wideband-noise trajectories \cite{Grantham2003}. RANF preserves the five local thresholds most closely at \(N=19\); at \(N=5\), SUpDEq-Bary-MCA and RANF are closest. This local projection complements AIRM by translating selected tensor discrepancies into angular units.
 \section{Discussion and Future Work}
 
-Bivariate Fisher information evaluates the spatial derivatives of the selected auditory cues. AIRM measures reconstruction-induced changes in the scale, anisotropy, and orientation of the resulting tensors.
+Bivariate Fisher information evaluates the spatial derivatives of the selected auditory cues, and AIRM measures reconstruction-induced changes in the scale, anisotropy, and orientation of the resulting tensors. This differs from the Bayesian localisation model, which predicts pointing responses from sensory evidence, a prior, a decision rule, and response variability. The two analyses therefore quantify complementary quantities: simulated pointing and local discrimination.
 
-The Bayesian localisation model predicts response distributions from sensory evidence, a prior, a decision rule, and response variability. The Fisher tensor describes local cue sensitivity under the Gaussian internal-noise model. Their results quantify simulated pointing and local discrimination, respectively.
+The high-sparsity results identify limits of the interpolation methods. Three retained directions do not satisfy the closed-hull requirement of SUpDEq-Bary-MCA, and SH-based or natural-neighbour interpolation can produce severe Fisher-tensor divergence at extreme sparsity even when conventional error summaries remain finite. RANF gives the strongest overall performance, while FSP-AE provides a second learning-based comparator with stable Fisher-tensor behaviour despite higher LSD.
 
-The high-sparsity results identify limits of the interpolation methods. Three retained directions do not satisfy the closed-hull requirement of SUpDEq-Bary-MCA. SH-based and natural-neighbour interpolation can produce severe Fisher-tensor divergence at extreme sparsity even when conventional error summaries remain finite. RANF gives the strongest overall performance, while FSP-AE provides a second learning-based comparator with stable Fisher-tensor behaviour despite higher LSD.
+The present Fisher analysis uses direction-independent cue-noise weights, so spatial variation in predicted discriminability arises from HRTF cue gradients rather than spatially varying internal noise. A more general observer model could allow cue-noise covariance to vary with source direction, separating anisotropy from the acoustic cue field from anisotropy due to direction-dependent sensory reliability. This extension is distinct from the equatorial prior in the Barumerli model: the prior biases point estimates towards more probable source regions, whereas direction-dependent cue noise would change the local discrimination threshold itself.
 
-The present Fisher analysis uses direction-independent cue-noise weights, so spatial variation in predicted discriminability arises from the HRTF cue gradients rather than from spatially varying internal noise. A more general observer model could allow the cue-noise covariance to vary with source direction. This would distinguish anisotropy arising from the acoustic cue field from anisotropy arising from direction-dependent sensory reliability. This extension is distinct from the equatorial prior in the Barumerli model: the prior biases point estimates towards more probable source regions, whereas direction-dependent cue noise would change the local discrimination threshold itself. The distinction matters when comparing frontal, lateral, and elevated source regions, where acuity and response bias may vary independently.
-
-The Fisher tensor defines a direction-dependent metric on the sphere, so HRTF reconstruction can also be viewed as preserving a local derivative structure rather than only matching spectra at sampled directions. A future learning objective could therefore combine spectral error with a penalty on the discrepancy between measured and reconstructed Fisher tensor fields, for example using AIRM as a tensor-valued loss. Because the Fisher tensor depends nonlinearly on spatial cue derivatives and cue-noise weights, a more tractable alternative may be to regularise the spatial Jacobians of the constituent localisation cues themselves, such as PGE, ILD, and ITD. This would encourage reconstructions to preserve the local variation of the auditory cues from which the Fisher tensor is derived. The neighbour dissimilarity loss used in HRTFformer is a related step in this direction, since it penalises local inconsistency across the reconstructed HRTF field rather than treating each direction as an isolated sample.
+The Fisher tensor defines a direction-dependent metric on the sphere, so HRTF reconstruction can be viewed as preserving a local derivative structure rather than only matching spectra at sampled directions. A future learning objective could combine spectral error with AIRM as a tensor-valued loss, or more tractably regularise the spatial Jacobians of PGE, ILD, and ITD. The neighbour dissimilarity loss used in HRTFformer is a related step, since it penalises local inconsistency across the reconstructed HRTF field rather than treating each direction as an isolated sample.
 
 \FloatBarrier
+\begingroup
+\footnotesize
+\setlength{\itemsep}{0pt}
+\setlength{\parsep}{0pt}
 \begin{thebibliography}{99}
 
 \bibitem{Dayan2001}
@@ -630,6 +634,7 @@ Y. Ito, T. Nakamura, S. Koyama, S. Sakamoto, and H. Saruwatari,
 J. C. Middlebrooks, ``Virtual localization improved by scaling nonindividualized external-ear transfer functions in frequency,'' \textit{J. Acoust. Soc. Am.}, vol. 106, no. 3, pp. 1493--1510, 1999, doi:10.1121/1.427147.
 
 \end{thebibliography}
+\endgroup
 
 \end{document}
 
