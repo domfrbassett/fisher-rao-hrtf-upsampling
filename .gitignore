@@ -44,3 +44,20 @@ ml_comparator_research/**/repos/
 ml_comparator_research/**/work/
 ml_comparator_research/**/__pycache__/
 ml_comparator_research/**/outputs/
+
+# Listening-test generated assets and response data
+listening_test/node_modules/
+listening_test/dist/
+listening_test/fields/
+listening_test/dense_render_validation/
+listening_test/public/audio/**/*.wav
+listening_test/public/audio/**/*.flac
+listening_test/public/audio/**/*.mp3
+listening_test/public/audio/**/*.ogg
+listening_test/server/data/*
+!listening_test/server/data/.gitkeep
+listening_test/exports/*
+!listening_test/exports/.gitkeep
+listening_test/matlab/adaptive_condition_plan.csv
+listening_test/**/*.mat
+listening_test/**/*.sofa

@@ -14,6 +14,7 @@ The repository includes the paper source, compiled PDFs, figures and tables used
 - `ml_comparator_research/comparator_protocol/`: shared SONICOM protocol tools and the first-party RANF adapter. The upstream RANF repository is required separately.
 - `ml_comparator_research/fsp_ae_sonicom/`: first-party FSP-AE SONICOM adaptation wrapper. The upstream FSP-AE source tree is required separately.
 - `barumerli_compatibility/` and `sfs_compatibility/`: small compatibility shims used by the MATLAB evaluation scripts.
+- `listening_test/`: two-interval listening-test source, Cloudflare Worker, configuration manifests, and MATLAB stimulus-bank builders. Generated WAV stimuli and response data are excluded from Git.
 
 ## External Data And Dependencies
 

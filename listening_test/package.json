@@ -1,0 +1,17 @@
+{
+  "name": "fisher-rao-hrtf-2ifc-study",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web-delivered two-interval HRTF direction-discrimination experiment.",
+  "scripts": {
+    "start": "node server/server.js",
+    "check": "node --check server/server.js && node --check public/app.js && node --check worker/sites-worker.js",
+    "build:sites": "node scripts/build-sites-worker.js",
+    "deploy:cloudflare": "wrangler deploy",
+    "tail:cloudflare": "wrangler tail",
+    "export:cloudflare": "wrangler d1 execute fisher-rao-hrtf-2ifc-db --remote --command \"SELECT data_json FROM responses ORDER BY received_at, response_id;\""
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

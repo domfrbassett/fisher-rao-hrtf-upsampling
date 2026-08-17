@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spatial Direction Discrimination Study</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="study-header">
+      <div>
+        <p class="eyebrow">Headphone Listening Study</p>
+        <h1>Spatial Direction Discrimination</h1>
+      </div>
+      <div id="mode-pill" class="pill hidden"></div>
+    </header>
+
+    <section id="loading-panel" class="panel">
+      <h2>Preparing study</h2>
+      <p>Loading the experiment configuration.</p>
+    </section>
+
+    <section id="start-panel" class="panel hidden" aria-labelledby="start-heading">
+      <h2 id="start-heading">Before you begin</h2>
+      <p>
+        You will hear two brief sounds in each trial and decide which sound was
+        farther left or higher up. Please complete the task in a quiet place
+        using headphones.
+      </p>
+      <label class="field">
+        <span>Participant code</span>
+        <input id="participant-code" type="text" maxlength="32" autocomplete="off"
+          placeholder="Participant code">
+      </label>
+      <label class="field">
+        <span>Listening environment</span>
+        <select id="environment">
+          <option value="supervised_lab">Supervised laboratory session</option>
+          <option value="supervised_quiet_room">Supervised quiet room</option>
+          <option value="remote_quiet_room">Remote quiet room</option>
+        </select>
+      </label>
+      <label class="check">
+        <input id="consent-check" type="checkbox">
+        <span>I confirm that I have read the <a id="participant-info-link" href="consent.html" target="_blank" rel="noopener">participant information and consent form</a> and consented to this study.</span>
+      </label>
+      <label class="check">
+        <input id="headphones-check" type="checkbox">
+        <span>I am wearing headphones and will keep them on throughout the experiment.</span>
+      </label>
+      <p id="start-error" class="error hidden" role="alert"></p>
+      <button id="begin-button" class="primary">Continue to audio check</button>
+    </section>
+
+    <section id="calibration-panel" class="panel hidden" aria-labelledby="calibration-heading">
+      <h2 id="calibration-heading">Headphone and level check</h2>
+      <p>
+        Set the playback level to a comfortable, clearly audible volume.
+        Press the check button as many times as needed. You should hear the
+        first sound on the left and the second sound on the right. Do not
+        change the volume after beginning the task.
+      </p>
+      <p id="resume-notice" class="muted hidden"></p>
+      <button id="calibration-button" class="secondary">Play left/right check</button>
+      <label class="check">
+        <input id="volume-check" type="checkbox">
+        <span>The level is comfortable, and the first sound was on the left and the second was on the right.</span>
+      </label>
+      <button id="instructions-button" class="primary" disabled>View instructions</button>
+    </section>
+
+    <section id="instructions-panel" class="panel hidden" aria-labelledby="instructions-heading">
+      <h2 id="instructions-heading">Instructions</h2>
+      <div id="instructions-text"></div>
+      <div class="example">
+        <p><strong>Each trial:</strong></p>
+        <ol>
+          <li>Press <em>Play trial</em>.</li>
+          <li>Listen to A and B.</li>
+          <li>Choose A or B.</li>
+        </ol>
+      </div>
+      <p>
+        Respond according to perceived location, not sound quality or timbre.
+        During the task there is no replay and no feedback.
+      </p>
+      <button id="start-block-button" class="primary">Begin block</button>
+    </section>
+
+    <section id="trial-panel" class="panel trial-panel hidden" aria-labelledby="trial-heading">
+      <div class="progress-row">
+        <span id="block-label"></span>
+        <span id="progress-label"></span>
+      </div>
+      <progress id="progress-bar" value="0" max="1"></progress>
+      <h2 id="trial-heading">Trial</h2>
+      <p id="trial-question" class="question"></p>
+      <div class="interval-display" aria-live="polite">
+        <div id="interval-one" class="interval">A</div>
+        <div id="interval-two" class="interval">B</div>
+      </div>
+      <div class="button-row">
+        <button id="play-button" class="primary">Play trial</button>
+        <button id="replay-button" class="secondary hidden">Replay once</button>
+      </div>
+      <fieldset id="answer-fieldset" class="answers" disabled>
+        <legend>Your response</legend>
+        <button id="answer-one" class="answer">A</button>
+        <button id="answer-two" class="answer">B</button>
+      </fieldset>
+      <p id="feedback" class="feedback hidden" aria-live="polite"></p>
+      <button id="next-button" class="primary hidden">Next trial</button>
+    </section>
+
+    <section id="break-panel" class="panel hidden" aria-labelledby="break-heading">
+      <h2 id="break-heading">Break</h2>
+      <p id="break-text"></p>
+      <div class="button-row">
+        <button id="continue-block-button" class="primary">Continue</button>
+        <button id="pause-session-button" class="secondary">Resume another time</button>
+      </div>
+    </section>
+
+    <section id="pause-panel" class="panel hidden" aria-labelledby="pause-heading">
+      <h2 id="pause-heading">Progress saved</h2>
+      <p>
+        You may close this page. To resume, return to the study link and enter
+        the same participant code.
+      </p>
+      <p class="completion">Participant code to use when resuming: <strong id="pause-code"></strong></p>
+    </section>
+
+    <section id="complete-panel" class="panel hidden" aria-labelledby="complete-heading">
+      <h2 id="complete-heading">Session complete</h2>
+      <p>Thank you. Your responses have been recorded.</p>
+      <p class="completion">Completion code: <strong id="completion-code"></strong></p>
+      <p class="muted">Please show this page to the researcher before closing the browser.</p>
+    </section>
+  </main>
+
+  <script src="app.js?v=20260810-lr-check"></script>
+</body>
+</html>

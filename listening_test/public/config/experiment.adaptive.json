@@ -1,0 +1,11 @@
+{
+  "studyId": "fisher_rao_hrtf_2ifc",
+  "title": "Spatial Direction Discrimination",
+  "manifest": "config/trials.adaptive.json",
+  "manifestVersion": "adaptive-v5-subgrid-supdeq-raw-ml",
+  "mode": "adaptive",
+  "intervalGapMs": 400,
+  "interTrialPauseMs": 150,
+  "calibrationDurationMs": 650,
+  "calibrationLevel": 0.12
+}

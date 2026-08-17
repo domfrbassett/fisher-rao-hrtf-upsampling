@@ -1,0 +1,4 @@
+﻿trackId,blockId,blockLabel,blockType,axis,question,virtualHrtfSubjectId,fieldType,method,retainedDirections,fieldMat,referenceMetricTensorMat,fieldMetricTensorMat,anchorId,levelIndex,separationDeg,standardIndex,targetIndex,LSDdB,ILDErrorDb
+lat_P0196_Measured_N793_anchor01,adaptive_lateral,Adaptive lateral judgement,formal,lateral,Which sound, A or B, sounded farther to the left?,196,reference,Measured,793,PLACEHOLDER_Measured_N793_hrir_field.mat,PLACEHOLDER_Measured_N793_metric_tensor.mat,PLACEHOLDER_Measured_N793_metric_tensor.mat,anchor01,1,20,1,20,0,0
+lat_P0196_SUpDEq_MCA_N019_anchor01,adaptive_lateral,Adaptive lateral judgement,formal,lateral,Which sound, A or B, sounded farther to the left?,196,reconstruction,SUpDEq_MCA,19,PLACEHOLDER_SUpDEq_MCA_N019_hrir_field.mat,PLACEHOLDER_Measured_N793_metric_tensor.mat,PLACEHOLDER_SUpDEq_MCA_N019_metric_tensor.mat,anchor01,1,20,1,20,NaN,NaN
+
