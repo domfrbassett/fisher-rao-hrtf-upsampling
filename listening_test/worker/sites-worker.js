@@ -32,7 +32,7 @@ export default {
         return pauseSession(request, env);
       }
       if (request.method === "GET" && url.pathname === "/api/export.csv") {
-        return exportResponses(url, env);
+        return exportResponses(request, env);
       }
       if (request.method === "GET" || request.method === "HEAD") {
         return serveAsset(request, env);
@@ -165,6 +165,11 @@ async function storeResponse(request, env) {
     hardestLevelCorrectCount: finiteOrNull(body.hardestLevelCorrectCount),
     staircaseComplete: Boolean(body.staircaseComplete),
     thresholdEstimateDeg: finiteOrNull(body.thresholdEstimateDeg),
+    thresholdCiLowerDeg: finiteOrNull(body.thresholdCiLowerDeg),
+    thresholdCiUpperDeg: finiteOrNull(body.thresholdCiUpperDeg),
+    thresholdPosteriorLogSd: finiteOrNull(body.thresholdPosteriorLogSd),
+    adaptivePosteriorEntropy: finiteOrNull(body.adaptivePosteriorEntropy),
+    levelRoveDb: finiteOrNull(body.levelRoveDb),
     intervalOneStimulus: cleanText(body.intervalOneStimulus, 40),
     intervalTwoStimulus: cleanText(body.intervalTwoStimulus, 40),
     correctInterval: finiteOrNull(body.correctInterval),
@@ -230,9 +235,12 @@ async function pauseSession(request, env) {
   });
 }
 
-async function exportResponses(url, env) {
+async function exportResponses(request, env) {
   const exportKey = env.EXPORT_KEY || "";
-  if (exportKey && url.searchParams.get("key") !== exportKey) {
+  if (!exportKey) {
+    return sendJson(503, { error: "Response export is not configured." });
+  }
+  if (request.headers.get("Authorization") !== `Bearer ${exportKey}`) {
     return sendJson(403, { error: "Export key required." });
   }
   const result = await env.DB.prepare(

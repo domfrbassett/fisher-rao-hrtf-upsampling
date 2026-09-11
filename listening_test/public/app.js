@@ -53,7 +53,7 @@ function bindElements() {
     "start-block-button",
     "block-label", "progress-label", "progress-bar", "trial-question",
     "interval-one", "interval-two", "play-button", "replay-button",
-    "answer-fieldset", "answer-one", "answer-two", "feedback", "next-button",
+    "feedback", "next-button",
     "break-text", "continue-block-button", "pause-session-button",
     "pause-code", "completion-code",
     "participant-info-link"
@@ -73,8 +73,8 @@ function bindActions() {
   elements.startBlockButton.addEventListener("click", beginDisplayedBlock);
   elements.playButton.addEventListener("click", playCurrentTrial);
   elements.replayButton.addEventListener("click", playCurrentTrial);
-  elements.answerOne.addEventListener("click", () => submitResponse(1));
-  elements.answerTwo.addEventListener("click", () => submitResponse(2));
+  elements.intervalOne.addEventListener("click", () => submitResponse(1));
+  elements.intervalTwo.addEventListener("click", () => submitResponse(2));
   elements.nextButton.addEventListener("click", advanceAfterResponse);
   elements.continueBlockButton.addEventListener("click", () => {
     displayBlockInstructions(state.blockIndex + 1);
@@ -184,7 +184,7 @@ function displayTrial() {
   elements.playButton.classList.remove("hidden");
   elements.replayButton.classList.add("hidden");
   elements.replayButton.disabled = false;
-  elements.answerFieldset.disabled = true;
+  setResponseButtonsEnabled(false);
   elements.feedback.className = "feedback hidden";
   elements.nextButton.classList.add("hidden");
   resetIntervalDisplay();
@@ -196,7 +196,7 @@ async function playCurrentTrial() {
   const trial = state.currentTrial;
   elements.playButton.disabled = true;
   elements.replayButton.disabled = true;
-  elements.answerFieldset.disabled = true;
+  setResponseButtonsEnabled(false);
   elements.feedback.className = "feedback hidden";
   resetIntervalDisplay();
 
@@ -204,15 +204,15 @@ async function playCurrentTrial() {
     await preloadTrialAudio(trial);
     state.playbackCount += 1;
     elements.intervalOne.classList.add("playing");
-    await playStimulus(trial.orderedStimuli[0].stimulus);
+    await playStimulus(trial.orderedStimuli[0].stimulus, trial.levelRoveDb);
     elements.intervalOne.classList.remove("playing");
     await pause(state.configuration.intervalGapMs);
     elements.intervalTwo.classList.add("playing");
-    await playStimulus(trial.orderedStimuli[1].stimulus);
+    await playStimulus(trial.orderedStimuli[1].stimulus, trial.levelRoveDb);
     elements.intervalTwo.classList.remove("playing");
 
     state.responseEnabledAt = performance.now();
-    elements.answerFieldset.disabled = false;
+    setResponseButtonsEnabled(true);
     elements.playButton.classList.add("hidden");
     if (block.type === "practice" && state.playbackCount === 1) {
       elements.replayButton.classList.remove("hidden");
@@ -231,14 +231,19 @@ async function playCurrentTrial() {
 }
 
 async function submitResponse(responseInterval) {
-  if (!state.responseEnabledAt || elements.answerFieldset.disabled) {
+  if (!state.responseEnabledAt || elements.intervalOne.disabled) {
     return;
   }
   const block = state.blocks[state.blockIndex];
   const trial = state.currentTrial;
   const correct = responseInterval === trial.correctInterval;
   const adaptiveUpdate = block.adaptive ? updateAdaptiveTrack(block, correct) : null;
-  elements.answerFieldset.disabled = true;
+  setResponseButtonsEnabled(false);
+  if (responseInterval === 1) {
+    elements.intervalOne.classList.add("selected");
+  } else {
+    elements.intervalTwo.classList.add("selected");
+  }
   elements.replayButton.classList.add("hidden");
 
   const record = {
@@ -273,6 +278,11 @@ async function submitResponse(responseInterval) {
     hardestLevelCorrectCount: adaptiveUpdate ? adaptiveUpdate.hardestLevelCorrect : null,
     staircaseComplete: adaptiveUpdate ? adaptiveUpdate.complete : null,
     thresholdEstimateDeg: adaptiveUpdate ? adaptiveUpdate.thresholdEstimateDeg : null,
+    thresholdCiLowerDeg: adaptiveUpdate ? adaptiveUpdate.thresholdCiLowerDeg : null,
+    thresholdCiUpperDeg: adaptiveUpdate ? adaptiveUpdate.thresholdCiUpperDeg : null,
+    thresholdPosteriorLogSd: adaptiveUpdate ? adaptiveUpdate.thresholdPosteriorLogSd : null,
+    adaptivePosteriorEntropy: adaptiveUpdate ? adaptiveUpdate.adaptivePosteriorEntropy : null,
+    levelRoveDb: Number.isFinite(trial.levelRoveDb) ? trial.levelRoveDb : null,
     intervalOneStimulus: trial.orderedStimuli[0].label,
     intervalTwoStimulus: trial.orderedStimuli[1].label,
     correctInterval: trial.correctInterval,
@@ -296,19 +306,8 @@ async function submitResponse(responseInterval) {
     elements.feedback.textContent = correct ? "Correct." : "Incorrect. Listen for perceived position.";
     elements.feedback.className = `feedback ${correct ? "correct" : "incorrect"}`;
   }
-  if (block.adaptive) {
-    if (!adaptiveUpdate.complete) {
-      elements.nextButton.textContent = "Next comparison";
-    } else if (state.adaptiveTrackIndex + 1 < block.trackStates.length) {
-      elements.nextButton.textContent = "Next track";
-    } else {
-      elements.nextButton.textContent = "Finish block";
-    }
-  } else {
-    elements.nextButton.textContent =
-      state.trialIndex + 1 < block.trials.length ? "Next trial" : "Finish block";
-  }
-  elements.nextButton.classList.remove("hidden");
+  window.setTimeout(advanceAfterResponse,
+    Number(state.configuration.interTrialPauseMs || 150));
 }
 
 function advanceAfterResponse() {
@@ -384,11 +383,18 @@ function prepareBlocks(blocks, random) {
   const completedTrackIds = new Set(
     (state.resumeProgress && state.resumeProgress.completedTrackIds) || []);
   state.assignedVirtualHrtfSubjectId = null;
-  return blocks.map((block) => {
+  const sourceBlocks = blocks.slice();
+  const practiceBlock = createPracticeBlock(sourceBlocks, state.manifest.practice);
+  if (practiceBlock) {
+    sourceBlocks.unshift(practiceBlock);
+  }
+  const prepared = sourceBlocks.map((block) => {
     if (block.adaptive) {
       return prepareAdaptiveBlock(block, random, completedTrackIds);
     }
-    const trials = shuffle(block.trials.slice(), random).map((sourceTrial) => {
+    const sourceTrials = block.randomiseTrials === false ?
+      block.trials.slice() : shuffle(block.trials.slice(), random);
+    const trials = sourceTrials.map((sourceTrial) => {
       const targetFirst = random() < 0.5;
       const orderedStimuli = targetFirst ?
         [{ label: "target", stimulus: sourceTrial.stimuli.target },
@@ -398,11 +404,68 @@ function prepareBlocks(blocks, random) {
       return {
         ...sourceTrial,
         orderedStimuli,
-        correctInterval: targetFirst ? 1 : 2
+        correctInterval: targetFirst ? 1 : 2,
+        levelRoveDb: ((2 * random()) - 1) *
+          Number(state.manifest.adaptiveRule?.levelRoveDb ?? 1.5)
       };
     });
     return { ...block, trials };
   }).filter((block) => !block.adaptive || block.trackStates.length > 0);
+  const practiceBlocks = prepared.filter((block) => block.type === "practice");
+  const formalBlocks = shuffle(
+    prepared.filter((block) => block.type !== "practice"), random);
+  formalBlocks.forEach((block, index) => {
+    block.label = `Lateral judgement (${index + 1}/${formalBlocks.length})`;
+  });
+  return [...practiceBlocks, ...formalBlocks];
+}
+
+function createPracticeBlock(blocks, practiceConfiguration) {
+  if (!practiceConfiguration || practiceConfiguration.enabled === false) {
+    return null;
+  }
+  const measuredTrack = blocks.flatMap((block) => block.tracks || [])
+    .find((track) => track.method === "Measured" &&
+      track.anchorId === (practiceConfiguration.anchorId || "lateral_anchor02"));
+  if (!measuredTrack) {
+    return null;
+  }
+  const requestedSeparations = practiceConfiguration.separationsDeg ||
+    [20, 10, 7, 5, 3.5, 2.5];
+  const trials = requestedSeparations.map((requested, index) => {
+    const level = measuredTrack.levels.reduce((best, candidate) =>
+      Math.abs(Number(candidate.separationDeg) - requested) <
+      Math.abs(Number(best.separationDeg) - requested) ? candidate : best);
+    return {
+      trialId: `practice_${String(index + 1).padStart(2, "0")}_L${level.levelIndex}`,
+      pairId: `practice_${measuredTrack.trackId}_${level.levelIndex}`,
+      trackId: measuredTrack.trackId,
+      axis: "lateral",
+      fieldType: measuredTrack.fieldType,
+      method: measuredTrack.method,
+      retainedDirections: measuredTrack.retainedDirections,
+      virtualHrtfSubjectId: measuredTrack.virtualHrtfSubjectId,
+      levelIndex: level.levelIndex,
+      separationDeg: level.separationDeg,
+      repetition: index + 1,
+      difficultySection: "practice",
+      stimuli: {
+        target: level.stimuli.target,
+        standard: level.stimuli.standard
+      }
+    };
+  });
+  return {
+    blockId: "practice",
+    label: "Practice",
+    instruction: "Practise deciding which sound is farther to the left. Feedback is shown after each response.",
+    type: "practice",
+    adaptive: false,
+    randomiseTrials: false,
+    axis: "lateral",
+    question: "Which sound, A or B, sounded farther to the left?",
+    trials
+  };
 }
 
 function prepareAdaptiveBlock(block, random, completedTrackIds = new Set()) {
@@ -413,22 +476,21 @@ function prepareAdaptiveBlock(block, random, completedTrackIds = new Set()) {
     const levels = (track.levels || [])
       .slice()
       .sort((first, second) => Number(second.separationDeg) - Number(first.separationDeg));
-    return {
+    const trackState = {
       track,
       levels,
-      currentLevelIndex: Math.min(
-        Math.max(Number(adaptiveRule.startLevelIndex ?? 0), 0),
-        Math.max(levels.length - 1, 0)),
+      currentLevelIndex: 0,
       trialNumber: 0,
-      consecutiveCorrect: 0,
-      reversals: 0,
-      lastDirection: null,
-      hardestLevelTrials: 0,
-      hardestLevelCorrect: 0,
       stopReason: null,
       complete: false,
       history: []
     };
+    if (adaptiveRule.rule !== "bayesian-psi") {
+      throw new Error(`Unsupported adaptive rule: ${adaptiveRule.rule}`);
+    }
+    trackState.adaptiveModel = HrtfAdaptive.create(levels, adaptiveRule);
+    trackState.currentLevelIndex = HrtfAdaptive.selectLevel(trackState.adaptiveModel);
+    return trackState;
   });
   return { ...block, adaptiveRule, trackStates: tracks };
 }
@@ -455,6 +517,8 @@ function makeAdaptiveTrial(block, trackState) {
     staircaseTrial: trackState.trialNumber + 1,
     repetition: trackState.trialNumber + 1,
     displacementSign: usePositiveDisplacement ? "positive" : "opposite",
+    levelRoveDb: ((2 * state.random()) - 1) *
+      Number(block.adaptiveRule.levelRoveDb ?? 1.5),
     orderedStimuli,
     correctInterval: orderedStimuli.findIndex((item) => item.label === correctLabel) + 1
   };
@@ -464,108 +528,38 @@ function updateAdaptiveTrack(block, correct) {
   const rule = block.adaptiveRule || {};
   const trackState = block.trackStates[state.adaptiveTrackIndex];
   const trial = state.currentTrial;
-  const levelBefore = trackState.currentLevelIndex;
-  let direction = "same";
-  let reversal = false;
+  return updateBayesianAdaptiveTrack(trackState, trial, correct, rule);
+}
 
-  if (correct) {
-    trackState.consecutiveCorrect += 1;
-    const correctToDescend = trackState.reversals === 0 ?
-      Number(rule.correctToDescendBeforeFirstReversal ?? rule.correctToDescend ?? 2) :
-      Number(rule.correctToDescend ?? 2);
-    if (trackState.consecutiveCorrect >= correctToDescend) {
-      const nextLevel = Math.min(trackState.currentLevelIndex + 1, trackState.levels.length - 1);
-      direction = nextLevel === trackState.currentLevelIndex ? "same" : "harder";
-      trackState.currentLevelIndex = nextLevel;
-      trackState.consecutiveCorrect = 0;
-    }
-  } else {
-    const nextLevel = Math.max(trackState.currentLevelIndex - 1, 0);
-    direction = nextLevel === trackState.currentLevelIndex ? "same" : "easier";
-    trackState.currentLevelIndex = nextLevel;
-    trackState.consecutiveCorrect = 0;
-  }
-
-  if (direction !== "same" && trackState.lastDirection && direction !== trackState.lastDirection) {
-    trackState.reversals += 1;
-    reversal = true;
-  }
-  if (direction !== "same") {
-    trackState.lastDirection = direction;
-  }
-
-  const hardestLevelIndex = trackState.levels.length - 1;
-  if (levelBefore === hardestLevelIndex) {
-    trackState.hardestLevelTrials += 1;
-    if (correct) {
-      trackState.hardestLevelCorrect += 1;
-    }
-  }
-
+function updateBayesianAdaptiveTrack(trackState, trial, correct, rule) {
+  const summary = HrtfAdaptive.update(
+    trackState.adaptiveModel, trackState.currentLevelIndex, correct);
   trackState.history.push({
     trialNumber: trial.staircaseTrial,
-    levelIndex: levelBefore,
+    levelIndex: trackState.currentLevelIndex,
     separationDeg: trial.separationDeg,
-    correct,
-    direction,
-    reversal
+    correct
   });
   trackState.trialNumber += 1;
-
-  const maxTrials = Number(rule.maxTrials ?? 10);
-  const minTrials = Number(rule.minTrials ?? 6);
-  const reversalsToStop = Number(rule.reversalsToStop ?? 6);
-  const floorMinTrials = Number(rule.floorMinTrials ?? 8);
-  const floorAccuracyToStop = Number(rule.floorAccuracyToStop ?? 0.875);
-  const hardestAccuracy = trackState.hardestLevelTrials > 0 ?
-    trackState.hardestLevelCorrect / trackState.hardestLevelTrials : 0;
-  const floorCeilingReached = trackState.trialNumber >= minTrials &&
-    trackState.hardestLevelTrials >= floorMinTrials &&
-    hardestAccuracy >= floorAccuracyToStop;
-  const reversalStopReached = trackState.trialNumber >= minTrials &&
-    trackState.reversals >= reversalsToStop;
-  const maxTrialsReached = trackState.trialNumber >= maxTrials;
-  trackState.complete = floorCeilingReached || reversalStopReached || maxTrialsReached;
-  if (floorCeilingReached) {
-    trackState.stopReason = "floor_ceiling";
-  } else if (reversalStopReached) {
-    trackState.stopReason = "reversals";
-  } else if (maxTrialsReached) {
-    trackState.stopReason = "max_trials";
+  const maximumTrials = Number(rule.maxTrials ?? 40);
+  trackState.complete = trackState.trialNumber >= maximumTrials;
+  trackState.stopReason = trackState.complete ? "fixed_trials" : null;
+  if (!trackState.complete) {
+    trackState.currentLevelIndex = HrtfAdaptive.selectLevel(trackState.adaptiveModel);
   }
-
   return {
-    direction,
-    reversal,
-    reversalCount: trackState.reversals,
+    direction: "information_gain",
+    reversal: false,
+    reversalCount: null,
     stopReason: trackState.stopReason,
-    hardestLevelTrials: trackState.hardestLevelTrials,
-    hardestLevelCorrect: trackState.hardestLevelCorrect,
+    hardestLevelTrials: null,
+    hardestLevelCorrect: null,
     complete: trackState.complete,
-    thresholdEstimateDeg: estimateAdaptiveThreshold(trackState)
+    ...summary
   };
 }
 
-function estimateAdaptiveThreshold(trackState) {
-  const reversalSeparations = trackState.history
-    .filter((item) => item.reversal)
-    .slice(2)
-    .map((item) => Number(item.separationDeg))
-    .filter(Number.isFinite);
-  const values = reversalSeparations.length >= 2 ? reversalSeparations :
-    trackState.history
-      .slice(Math.floor(trackState.history.length / 2))
-      .map((item) => Number(item.separationDeg))
-      .filter(Number.isFinite);
-  if (values.length === 0) {
-    return null;
-  }
-  values.sort((first, second) => first - second);
-  const middle = Math.floor(values.length / 2);
-  return values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
-}
-
-async function playStimulus(stimulus) {
+async function playStimulus(stimulus, gainDb = 0) {
   const context = getAudioContext();
   await context.resume();
   let buffer;
@@ -576,7 +570,7 @@ async function playStimulus(stimulus) {
   } else {
     throw new Error(`Unsupported stimulus type: ${stimulus.type}`);
   }
-  await playBuffer(buffer, context);
+  await playBuffer(buffer, context, gainDb);
 }
 
 async function preloadTrialAudio(trial) {
@@ -662,11 +656,14 @@ function makeLeftRightCheckBuffer(context) {
   return buffer;
 }
 
-function playBuffer(buffer, context) {
+function playBuffer(buffer, context, gainDb = 0) {
   return new Promise((resolve) => {
     const source = context.createBufferSource();
+    const gain = context.createGain();
     source.buffer = buffer;
-    source.connect(context.destination);
+    gain.gain.value = Math.pow(10, Number(gainDb || 0) / 20);
+    source.connect(gain);
+    gain.connect(context.destination);
     source.onended = resolve;
     source.start();
   });
@@ -713,8 +710,16 @@ function showPanel(name) {
 }
 
 function resetIntervalDisplay() {
-  elements.intervalOne.classList.remove("playing");
-  elements.intervalTwo.classList.remove("playing");
+  elements.intervalOne.classList.remove("playing", "selected");
+  elements.intervalTwo.classList.remove("playing", "selected");
+  setResponseButtonsEnabled(false);
+}
+
+function setResponseButtonsEnabled(enabled) {
+  [elements.intervalOne, elements.intervalTwo].forEach((element) => {
+    element.disabled = !enabled;
+    element.classList.toggle("response-enabled", enabled);
+  });
 }
 
 async function fetchJson(url) {

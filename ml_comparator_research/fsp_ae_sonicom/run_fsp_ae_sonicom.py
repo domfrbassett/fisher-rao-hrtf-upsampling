@@ -465,6 +465,15 @@ def export(args, config, bundle, masks, paths, torch, torchaudio, model_cls, get
             inputs = model_inputs(torch, batch, indices, device)
             with torch.no_grad():
                 hrtf_pred, itd_pred = model(*inputs[:5], "sonicom", device)
+                hrtf_raw = hrtf_pred.clone()
+                itd_raw = itd_pred.clone()
+                raw_hrir_32k = get_hrir_with_itd(
+                    hrtf_raw,
+                    itd_raw,
+                    input_kind="hrtf_mag",
+                    fs=32000.0,
+                    fs_up=config.data.fs_up,
+                )
                 idx = torch.as_tensor(indices, dtype=torch.long, device=device)
                 hrtf_pred[:, idx, :, :] = inputs[5][:, idx, :, :]
                 itd_pred[:, idx] = inputs[6][:, idx]
@@ -476,10 +485,32 @@ def export(args, config, bundle, masks, paths, torch, torchaudio, model_cls, get
                     fs_up=config.data.fs_up,
                 )
                 resampler = torchaudio.transforms.Resample(32000, 48000).to(device)
+                raw_flat = raw_hrir_32k.reshape(-1, raw_hrir_32k.shape[-1])
+                raw_hrir_48k = resampler(raw_flat).reshape(
+                    raw_hrir_32k.shape[0], raw_hrir_32k.shape[1], raw_hrir_32k.shape[2], -1
+                )
                 flat = hrir_32k.reshape(-1, hrir_32k.shape[-1])
                 hrir_48k = resampler(flat).reshape(
                     hrir_32k.shape[0], hrir_32k.shape[1], hrir_32k.shape[2], -1
                 )
+            raw_output = args.aligned_root / "FSP_AE_raw" / f"N{retention:03d}" / f"Sonicom_{subject_id}.sofa"
+            clone_sofa_with_ir(
+                paths[subject_id],
+                raw_output,
+                raw_hrir_48k[0].cpu().numpy().astype(np.float64),
+                48000.0,
+            )
+            manifest.append(
+                {
+                    "subjectId": subject_id,
+                    "retainedDirections": retention,
+                    "sofa": str(raw_output),
+                    "nodeReplacement": "none",
+                    "nativeSamplingRate": 32000,
+                    "exportSamplingRate": 48000,
+                }
+            )
+            print(f"Exported {raw_output}")
             output = args.aligned_root / "FSP_AE" / f"N{retention:03d}" / f"Sonicom_{subject_id}.sofa"
             clone_sofa_with_ir(
                 paths[subject_id],

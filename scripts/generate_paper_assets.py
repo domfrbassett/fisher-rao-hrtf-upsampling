@@ -13,7 +13,6 @@ from matplotlib.patches import Patch
 ROOT = Path(__file__).resolve().parents[1]
 RESULT_ROOT = ROOT / "results" / "barumerli_pge_fisher_hu_raw_ml_final"
 SUMMARY_CSV = RESULT_ROOT / "full_evaluation_summary.csv"
-FSP_AE_SUMMARY_CSV = ROOT / "results" / "__not_used__" / "full_evaluation_summary.csv"
 FSP_AE_LSD_16K_CSV = RESULT_ROOT / "fsp_ae_lsd_20_16k.csv"
 SAM_CSV = ROOT / "results" / "ml_lap_sam_metrics.csv"
 FIG_DIR = ROOT / "figures" / "evaluation"
@@ -91,9 +90,6 @@ def configure_matplotlib() -> None:
 
 def load_summary() -> pd.DataFrame:
     df = pd.read_csv(SUMMARY_CSV)
-    if FSP_AE_SUMMARY_CSV.is_file():
-        fsp = pd.read_csv(FSP_AE_SUMMARY_CSV)
-        df = pd.concat([df, fsp], ignore_index=True)
     if FSP_AE_LSD_16K_CSV.is_file():
         fsp_lsd = pd.read_csv(FSP_AE_LSD_16K_CSV)
         fsp_lsd = fsp_lsd.rename(columns={"LSDdB_20_16k": "FSP_AE_LSDdB"})
@@ -165,8 +161,7 @@ def aggregate_completed(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def save_figure(fig: plt.Figure, name: str) -> None:
-    for suffix in (".pdf", ".png"):
-        fig.savefig(FIG_DIR / f"{name}{suffix}", dpi=300)
+    fig.savefig(FIG_DIR / f"{name}.pdf", dpi=300)
     plt.close(fig)
 
 
@@ -489,13 +484,12 @@ def bayesian_distribution_boxplots(df: pd.DataFrame) -> None:
         frameon=False,
         bbox_to_anchor=(0.5, 0.99),
     )
-    for suffix in (".pdf", ".png"):
-        fig.savefig(
-            FIG_DIR / f"bayesian_subject_boxplots{suffix}",
-            dpi=300,
-            bbox_inches="tight",
-            pad_inches=0.035,
-        )
+    fig.savefig(
+        FIG_DIR / "bayesian_subject_boxplots.pdf",
+        dpi=300,
+        bbox_inches="tight",
+        pad_inches=0.035,
+    )
     plt.close(fig)
 
 
@@ -587,7 +581,7 @@ def write_airm_table(agg: pd.DataFrame, n_subjects: int) -> None:
 
 def write_tensor_component_mean_table(agg: pd.DataFrame) -> None:
     lines = [
-        "\\begin{table}[ht!]",
+        "\\begin{table*}[t]",
         "\\centering",
         "\\caption{Mean secondary Fisher-tensor component errors over the 41-subject cohort for the principal comparison set. Dashes denote conditions that are not applicable or for which the component summary is undefined under the stated validity criteria.}",
         "\\label{tab:tensor_component_means}",
@@ -618,8 +612,8 @@ def write_tensor_component_mean_table(agg: pd.DataFrame) -> None:
                 + " & ".join(vals)
                 + " \\\\"
             )
-    lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{table}", ""])
-    (TABLE_DIR / "tensor_component_mean_table.tex").write_text(
+    lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{table*}", ""])
+    (TABLE_DIR / "tensor_component_mean_table_ieee.tex").write_text(
         "\n".join(lines), encoding="utf-8"
     )
 
@@ -818,23 +812,12 @@ def main() -> None:
     TABLE_DIR.mkdir(parents=True, exist_ok=True)
     configure_matplotlib()
     df = load_summary()
-    sam = load_sam_metrics()
-    n_subjects = int(df["subjectId"].nunique())
     agg = aggregate_completed(df)
-    write_aggregate_csv(agg)
     airm_heatmap(agg)
     metric_relationships(df)
-    tensor_component_bars(agg)
-    subject_distribution_boxplots(df)
     bayesian_distribution_boxplots(df)
     lsd_distribution_boxplot(df)
-    write_airm_table(agg, n_subjects)
     write_tensor_component_mean_table(agg)
-    write_airm_median_iqr_table(df)
-    write_lsd_median_iqr_table(df)
-    write_bayesian_median_iqr_table(df)
-    write_best_methods_table(agg)
-    write_ranf_sam_table(sam)
     print(f"Wrote figures to {FIG_DIR}")
     print(f"Wrote tables to {TABLE_DIR}")
 

@@ -3,15 +3,15 @@ function manifest = build_adaptive_2ifc_stimulus_bank(conditionPlanCsv, publicRo
 %
 % Each row of conditionPlanCsv defines one angular separation level within
 % an adaptive track. Rows with the same trackId are grouped into one
-% staircase. The browser first descends quickly through easy levels, then
-% switches to a two-down/one-up rule after the first reversal; no convolution
-% or spatialisation is performed during the participant session.
+% track. The browser selects rendered levels with a Bayesian adaptive
+% psychometric procedure; no convolution or spatialisation is performed
+% during the participant session.
 
     arguments
         conditionPlanCsv (1, 1) string
         publicRoot (1, 1) string
         cfg.studyId (1, 1) string = "fisher_rao_hrtf_2ifc"
-        cfg.manifestVersion (1, 1) string = "adaptive-v4-grid-native-balanced-subjects"
+        cfg.manifestVersion (1, 1) string = "adaptive-v9-lateral-psi-dprime1-raw-ml"
         cfg.outputManifestName (1, 1) string = "trials.adaptive.json"
         cfg.sampleRate (1, 1) double = 48000
         cfg.durationSeconds (1, 1) double = 0.65
@@ -20,16 +20,10 @@ function manifest = build_adaptive_2ifc_stimulus_bank(conditionPlanCsv, publicRo
         cfg.levelRoveDb (1, 1) double = 1.5
         cfg.targetPeak (1, 1) double = 0.18
         cfg.startLevelIndex (1, 1) double = 1
-        cfg.minTrials (1, 1) double = 14
-        cfg.maxTrials (1, 1) double = 24
-        cfg.reversalsToStop (1, 1) double = 6
-        cfg.floorMinTrials (1, 1) double = 8
-        cfg.floorAccuracyToStop (1, 1) double = 0.875
-        cfg.correctToDescend (1, 1) double = 2
-        cfg.correctToDescendBeforeFirstReversal (1, 1) double = 1
+        cfg.maxTrials (1, 1) double = 40
         cfg.tracksPerBlock (1, 1) double = 8
         cfg.barycentricTolerance (1, 1) double = 1e-7
-        cfg.renderInterpolation (1, 1) string = "StoredGridOnly"
+        cfg.renderInterpolation (1, 1) string = "SUpDEq_Bary_MCA_6dB"
         cfg.headRadius (1, 1) double = 0.0875
         cfg.supdeqMaxSHOrder (1, 1) double = 27
         cfg.supdeqTikhEps (1, 1) double = 0
@@ -62,7 +56,6 @@ function manifest = build_adaptive_2ifc_stimulus_bank(conditionPlanCsv, publicRo
         ensure_supdeq_renderer_paths(publicRoot);
     end
 
-    stream = RandStream("mt19937ar", "Seed", cfg.noiseSeed);
     [standardHrirs, targetHrirs, oppositeTargetHrirs] = ...
         precompute_interpolated_hrirs(plan, cfg);
     levelRecords = repmat(empty_level_record(), height(plan), 1);
@@ -85,7 +78,7 @@ function manifest = build_adaptive_2ifc_stimulus_bank(conditionPlanCsv, publicRo
         targetHrir = targetHrirs{iRow};
         oppositeTargetHrir = oppositeTargetHrirs{iRow};
 
-        tokenSeed = deterministic_seed(plan.trackId(iRow), plan.levelIndex(iRow), ...
+        tokenSeed = deterministic_seed(plan.anchorId(iRow), plan.levelIndex(iRow), ...
             cfg.noiseSeed);
         source = broadband_token(tokenSeed, cfg);
         standardAudio = render_binaural_source(source, standardHrir);
@@ -93,11 +86,6 @@ function manifest = build_adaptive_2ifc_stimulus_bank(conditionPlanCsv, publicRo
         oppositeTargetAudio = render_binaural_source(source, oppositeTargetHrir);
         [standardAudio, targetAudio, oppositeTargetAudio] = normalise_group( ...
             standardAudio, targetAudio, oppositeTargetAudio, cfg);
-        rove = ((2 * rand(stream) - 1) * cfg.levelRoveDb);
-        standardAudio = standardAudio .* 10 ^ (rove / 20);
-        targetAudio = targetAudio .* 10 ^ (rove / 20);
-        oppositeTargetAudio = oppositeTargetAudio .* 10 ^ (rove / 20);
-
         safeId = regexprep(sprintf("%s_L%02d", char(plan.trackId(iRow)), ...
             plan.levelIndex(iRow)), "[^A-Za-z0-9_-]", "_");
         standardName = sprintf("%s_standard.wav", safeId);
@@ -146,24 +134,25 @@ function manifest = build_adaptive_2ifc_stimulus_bank(conditionPlanCsv, publicRo
     manifest.manifestVersion = char(cfg.manifestVersion);
     manifest.mode = "adaptive";
     if cfg.renderInterpolation == "StoredGridOnly"
-        manifest.notice = "Adaptive 2AFC staircases using stored-grid stereo WAV levels.";
+        manifest.notice = "Bayesian adaptive 2AFC tracks using stored-grid stereo WAV levels.";
     else
         manifest.notice = sprintf( ...
-            "Adaptive 2AFC staircases using %s continuous-rendered stereo WAV levels.", ...
+            "Bayesian adaptive 2AFC tracks using %s continuous-rendered stereo WAV levels.", ...
             cfg.renderInterpolation);
     end
     manifest.renderInterpolation = char(cfg.renderInterpolation);
-    manifest.virtualSubjectAssignment = "mixed_representative_subjects_within_participant";
+    manifest.virtualSubjectAssignment = "single_median_subject_selected_from_non_fisher_metrics";
     manifest.virtualHrtfSubjectIds = unique(plan.virtualHrtfSubjectId, "stable").';
-    manifest.adaptiveRule = struct("rule", "two-down-one-up", ...
-        "targetPc", 0.707, "startLevelIndex", cfg.startLevelIndex - 1, ...
-        "minTrials", cfg.minTrials, "maxTrials", cfg.maxTrials, ...
-        "reversalsToStop", cfg.reversalsToStop, ...
-        "floorMinTrials", cfg.floorMinTrials, ...
-        "floorAccuracyToStop", cfg.floorAccuracyToStop, ...
-        "correctToDescend", cfg.correctToDescend, ...
-        "correctToDescendBeforeFirstReversal", ...
-        cfg.correctToDescendBeforeFirstReversal);
+    manifest.practice = struct("enabled", true, ...
+        "anchorId", "lateral_anchor02", ...
+        "separationsDeg", [20, 10, 7, 5, 3.5, 2.5]);
+    manifest.adaptiveRule = struct("rule", "bayesian-psi", ...
+        "targetPc", 0.76, "maxTrials", cfg.maxTrials, ...
+        "thresholdMinDeg", 0.6, "thresholdMaxDeg", 15, ...
+        "thresholdGridSize", 51, ...
+        "slopeValues", [1.5, 2, 3, 4, 6, 8], ...
+        "lapseValues", [0, 0.02, 0.05], ...
+        "credibleMass", 0.95, "levelRoveDb", cfg.levelRoveDb);
 
     blockIds = unique(plan.blockId, "stable");
     manifest.blocks = repmat(empty_block_record(), 0, 1);
@@ -220,7 +209,7 @@ function manifest = build_adaptive_2ifc_stimulus_bank(conditionPlanCsv, publicRo
             block.axis = axisName;
             block.question = char(plan.question(blockRows(1)));
             block.tracks = trackRecords(sectionStart:sectionEnd);
-            manifest.blocks(end + 1, 1) = block; %#ok<AGROW>
+            manifest.blocks(end + 1, 1) = block;
         end
     end
 
@@ -602,6 +591,9 @@ function ensure_supdeq_renderer_paths(publicRoot)
 
     studyRoot = string(fileparts(fileparts(publicRoot)));
     dependencyRoot = fullfile(studyRoot, "dependencies");
+    if ~isfolder(dependencyRoot)
+        dependencyRoot = fullfile(fileparts(studyRoot), "dependencies");
+    end
     supdeqRoot = fullfile(dependencyRoot, "SUpDEq-master", "SUpDEq-master");
     paths = [ ...
         string(supdeqRoot), ...

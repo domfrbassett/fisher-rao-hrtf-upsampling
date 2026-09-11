@@ -6,7 +6,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SUMMARY_CSV = ROOT / "results" / "audits" / "local_threshold_plausibility_summary.csv"
-TABLE_TEX = ROOT / "tables" / "evaluation" / "local_threshold_plausibility_table.tex"
 TABLE_TEX_IEEE = ROOT / "tables" / "evaluation" / "local_threshold_plausibility_table_ieee.tex"
 
 COLUMNS = [
@@ -19,11 +18,10 @@ COLUMNS = [
 
 CAPTION = (
     "Population-median Fisher-predicted local $d'=1$ angular thresholds "
-    "(degrees). Coordinate pairs are $(\\mathrm{azimuth},\\mathrm{elevation})$ "
-    "in degrees. Lateral columns use horizontal-plane azimuthal displacements; "
-    "vertical columns use elevational displacements in the frontal plane. "
-    "The error column is the mean absolute deviation from the dense-reference "
-    "row across the five projected thresholds."
+    "in degrees. Coordinate pairs give $(\\mathrm{azimuth},\\mathrm{elevation})$. "
+    "Lateral columns use horizontal-plane azimuthal displacements and vertical "
+    "columns use frontal-plane elevational displacements. Err. is the mean "
+    "absolute deviation from the dense reference across the five thresholds."
 )
 
 
@@ -34,20 +32,19 @@ def read_rows() -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
-def write_table(path: Path, rows: list[dict[str, str]], *, star: bool) -> None:
-    env = "table*" if star else "table"
-    placement = "t" if star else "ht!"
-    tabcolsep = "3.2pt" if star else "5pt"
+def write_table(path: Path, rows: list[dict[str, str]]) -> None:
+    env = "table"
     header = "Method & $N$ & " + " & ".join(label for _key, label in COLUMNS)
-    header += " & Mean abs. err. \\\\"
+    header += " & Err. \\\\"
 
     lines = [
-        f"\\begin{{{env}}}[{placement}]",
+        f"\\begin{{{env}}}[!t]",
         "\\centering",
         f"\\caption{{{CAPTION}}}",
         "\\label{tab:local_threshold_plausibility}",
         "\\scriptsize",
-        f"\\setlength{{\\tabcolsep}}{{{tabcolsep}}}",
+        "\\setlength{\\tabcolsep}{2.4pt}",
+        "\\resizebox{\\columnwidth}{!}{%",
         "\\begin{tabular}{llrrrrrr}",
         "\\toprule",
         header,
@@ -60,15 +57,13 @@ def write_table(path: Path, rows: list[dict[str, str]], *, star: bool) -> None:
             f"{row['method']} & {n_value} & {values} & "
             f"{float(row['meanAbsErrorDeg']):.2f} \\\\"
         )
-    lines.extend(["\\bottomrule", "\\end{tabular}", f"\\end{{{env}}}"])
+    lines.extend(["\\bottomrule", "\\end{tabular}%", "}", f"\\end{{{env}}}"])
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main() -> None:
     rows = read_rows()
-    write_table(TABLE_TEX, rows, star=False)
-    write_table(TABLE_TEX_IEEE, rows, star=True)
-    print(f"Wrote {TABLE_TEX}")
+    write_table(TABLE_TEX_IEEE, rows)
     print(f"Wrote {TABLE_TEX_IEEE}")
 
 

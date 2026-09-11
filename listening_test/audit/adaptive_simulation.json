@@ -1,0 +1,152 @@
+{
+  "generatedAt": "2026-09-11T20:33:12.144Z",
+  "rule": {
+    "targetPc": 0.76,
+    "thresholdMinDeg": 0.6,
+    "thresholdMaxDeg": 15,
+    "thresholdGridSize": 51,
+    "slopeValues": [
+      1.5,
+      2,
+      3,
+      4,
+      6,
+      8
+    ],
+    "lapseValues": [
+      0,
+      0.02,
+      0.05
+    ],
+    "credibleMass": 0.95,
+    "maxTrials": 30
+  },
+  "levelsDeg": [
+    30,
+    20,
+    15,
+    10,
+    7,
+    5,
+    3.5,
+    2.5,
+    1.75,
+    1.25,
+    0.9,
+    0.6
+  ],
+  "scenarios": [
+    {
+      "threshold": 0.75,
+      "slope": 3,
+      "lapse": 0.02,
+      "repetitions": 100,
+      "medianEstimateDeg": 0.7948331887899835,
+      "estimateIntervalDeg": [
+        0.6594644682403557,
+        1.030976233766538
+      ],
+      "multiplicativeBias": 1.0748761655572323,
+      "logRmse": 0.14835431882822656,
+      "credibleIntervalCoverage": 1
+    },
+    {
+      "threshold": 1.25,
+      "slope": 3,
+      "lapse": 0.02,
+      "repetitions": 100,
+      "medianEstimateDeg": 1.229242761819719,
+      "estimateIntervalDeg": [
+        0.7881436704534324,
+        1.6023465916893993
+      ],
+      "multiplicativeBias": 0.9747569061236366,
+      "logRmse": 0.2339143730661824,
+      "credibleIntervalCoverage": 0.95
+    },
+    {
+      "threshold": 2.5,
+      "slope": 3,
+      "lapse": 0.02,
+      "repetitions": 100,
+      "medianEstimateDeg": 2.6109897962433055,
+      "estimateIntervalDeg": [
+        1.5995916485616362,
+        3.568917103896918
+      ],
+      "multiplicativeBias": 1.0210362366730175,
+      "logRmse": 0.2013222611714006,
+      "credibleIntervalCoverage": 0.97
+    },
+    {
+      "threshold": 5,
+      "slope": 3,
+      "lapse": 0.02,
+      "repetitions": 100,
+      "medianEstimateDeg": 5.19385743924162,
+      "estimateIntervalDeg": [
+        3.390412769263163,
+        7.008433993575881
+      ],
+      "multiplicativeBias": 1.012754512566705,
+      "logRmse": 0.18133360252815758,
+      "credibleIntervalCoverage": 0.99
+    },
+    {
+      "threshold": 10,
+      "slope": 3,
+      "lapse": 0.02,
+      "repetitions": 100,
+      "medianEstimateDeg": 10.349675996164482,
+      "estimateIntervalDeg": [
+        6.021380718138886,
+        12.966039194890964
+      ],
+      "multiplicativeBias": 0.9765550966601538,
+      "logRmse": 0.2629866515524256,
+      "credibleIntervalCoverage": 0.98
+    },
+    {
+      "threshold": 14,
+      "slope": 3,
+      "lapse": 0.02,
+      "repetitions": 100,
+      "medianEstimateDeg": 12.831261795564824,
+      "estimateIntervalDeg": [
+        7.242883418392194,
+        13.745261682109422
+      ],
+      "multiplicativeBias": 0.8575349019447535,
+      "logRmse": 0.2591862186097415,
+      "credibleIntervalCoverage": 0.97
+    },
+    {
+      "threshold": 2.5,
+      "slope": 1.5,
+      "lapse": 0.05,
+      "repetitions": 100,
+      "medianEstimateDeg": 2.9082199169743097,
+      "estimateIntervalDeg": [
+        1.6793597482378977,
+        6.848949812732323
+      ],
+      "multiplicativeBias": 1.2102440416002542,
+      "logRmse": 0.38385252736468956,
+      "credibleIntervalCoverage": 0.9
+    },
+    {
+      "threshold": 2.5,
+      "slope": 8,
+      "lapse": 0,
+      "repetitions": 100,
+      "medianEstimateDeg": 2.342559181836729,
+      "estimateIntervalDeg": [
+        1.8321657840057421,
+        2.6655675369480054
+      ],
+      "multiplicativeBias": 0.9121511716972198,
+      "logRmse": 0.13904215904717696,
+      "credibleIntervalCoverage": 0.98
+    }
+  ]
+}

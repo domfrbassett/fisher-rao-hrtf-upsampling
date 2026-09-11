@@ -43,7 +43,6 @@ function import_ranf_raw_sofas_for_behavioural_fields(projectRoot, rawExperiment
         end
     end
 end
-
 function ensure_sofa_paths(projectRoot)
 
     dependencyRoot = fullfile(projectRoot, "dependencies");

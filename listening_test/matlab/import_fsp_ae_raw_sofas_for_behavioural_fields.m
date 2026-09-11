@@ -41,7 +41,6 @@ function import_fsp_ae_raw_sofas_for_behavioural_fields(projectRoot, rawSofaRoot
         end
     end
 end
-
 function ensure_sofa_paths(projectRoot)
 
     dependencyRoot = fullfile(projectRoot, "dependencies");

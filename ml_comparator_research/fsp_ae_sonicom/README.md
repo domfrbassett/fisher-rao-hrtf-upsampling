@@ -7,7 +7,8 @@ SONICOM protocol used by the other comparators:
 - deterministic evaluation masks at 100, 19, 5, and 3 directions;
 - `FreeFieldCompMinPhase_48kHz` input SOFAs by default;
 - native FSP-AE joint magnitude and ITD prediction;
-- retained-node replacement in magnitude/ITD space before HRIR synthesis;
+- export of both the unmodified full model field and a LAP-compatible field
+  with retained-node replacement in magnitude/ITD space;
 - minimum-phase reconstruction with the model-predicted ITD;
 - 48 kHz SOFA export on the original 793-direction SONICOM grid.
 
@@ -49,9 +50,16 @@ SOFAs are written to:
 
 ```text
 ml_comparator_research/comparator_protocol/work/ml_lap_aligned/
+  FSP_AE_raw/N003/Sonicom_<subject>.sofa
+  FSP_AE_raw/N005/Sonicom_<subject>.sofa
+  FSP_AE_raw/N019/Sonicom_<subject>.sofa
+  FSP_AE_raw/N100/Sonicom_<subject>.sofa
   FSP_AE/N003/Sonicom_<subject>.sofa
   FSP_AE/N005/Sonicom_<subject>.sofa
   FSP_AE/N019/Sonicom_<subject>.sofa
   FSP_AE/N100/Sonicom_<subject>.sofa
 ```
+
+The manuscript evaluation uses `FSP_AE_raw`. The node-replaced `FSP_AE`
+exports are retained for comparisons that follow the original LAP convention.
 

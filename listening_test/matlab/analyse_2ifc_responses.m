@@ -8,7 +8,7 @@ function results = analyse_2ifc_responses(responseCsv, resultsRoot, cfg)
     arguments
         responseCsv (1, 1) string
         resultsRoot (1, 1) string
-        cfg.manifestVersion (1, 1) string = "adaptive-v4-grid-native-balanced-subjects"
+        cfg.manifestVersion (1, 1) string = "adaptive-v9-lateral-psi-dprime1-raw-ml"
     end
 
     if ~isfolder(resultsRoot)
@@ -38,6 +38,12 @@ function results = analyse_2ifc_responses(responseCsv, resultsRoot, cfg)
         formal.predictedDPrimeReference;
     isAdaptive = ismember("adaptive", string(formal.Properties.VariableNames)) && ...
         any(parse_logical(formal.adaptive));
+    if isAdaptive
+        formal = completed_adaptive_trials(formal);
+        assert(~isempty(formal), ...
+            "No completed adaptive tracks were found for manifest %s.", ...
+            cfg.manifestVersion);
+    end
 
     summary = groupsummary(formal, ...
         ["difficultySection", "axis", "method", "retainedDirections"], ...
@@ -122,13 +128,17 @@ function values = parse_logical(values)
 end
 
 function thresholds = adaptive_thresholds(adaptive)
-    groups = findgroups(adaptive.participantCode, adaptive.trackId);
+    if ~ismember("sessionId", string(adaptive.Properties.VariableNames))
+        adaptive.sessionId = repmat("legacy", height(adaptive), 1);
+    end
+    groups = findgroups(adaptive.participantCode, adaptive.sessionId, ...
+        adaptive.trackId);
     nGroups = max(groups);
     rows = repmat(empty_threshold_row(), nGroups, 1);
     for iGroup = 1:nGroups
-        idx = find(groups == iGroup);
+        idx = groups == iGroup;
         track = sortrows(adaptive(idx, :), "staircaseTrial");
-        estimate = track.thresholdEstimateDeg(end);
+        estimate = last_finite(track, "thresholdEstimateDeg");
         if ~isfinite(estimate)
             late = track.separationDeg(max(1, floor(height(track) / 2)):end);
             estimate = median(late, "omitnan");
@@ -136,15 +146,23 @@ function thresholds = adaptive_thresholds(adaptive)
         first = track(1, :);
         row = empty_threshold_row();
         row.participantCode = first.participantCode;
+        row.sessionId = first.sessionId;
         row.trackId = first.trackId;
+        row.blockId = first.blockId;
         row.axis = first.axis;
         row.method = first.method;
         row.retainedDirections = first.retainedDirections;
         row.virtualHrtfSubjectId = first.virtualHrtfSubjectId;
         row.thresholdDeg = estimate;
+        row.thresholdCiLowerDeg = last_finite(track, "thresholdCiLowerDeg");
+        row.thresholdCiUpperDeg = last_finite(track, "thresholdCiUpperDeg");
+        row.thresholdPosteriorLogSd = last_finite(track, ...
+            "thresholdPosteriorLogSd");
+        row.adaptivePosteriorEntropy = last_finite(track, ...
+            "adaptivePosteriorEntropy");
         row.trialCount = height(track);
         row.proportionCorrect = mean(parse_logical(track.correct));
-        row.finalReversalCount = max(track.reversalCount, [], "omitnan");
+        row.stopReason = string(track.staircaseStopReason(end));
         row.localAIRM = mean(track.localAIRM, "omitnan");
         row.predictedDPrimeReference = mean(track.predictedDPrimeReference, "omitnan");
         row.predictedDPrimeField = mean(track.predictedDPrimeField, "omitnan");
@@ -155,11 +173,39 @@ function thresholds = adaptive_thresholds(adaptive)
 end
 
 function row = empty_threshold_row()
-    row = struct("participantCode", "", "trackId", "", "axis", "", ...
+    row = struct("participantCode", "", "sessionId", "", "trackId", "", ...
+        "blockId", "", "axis", "", ...
         "method", "", "retainedDirections", NaN, ...
         "virtualHrtfSubjectId", NaN, "thresholdDeg", NaN, ...
+        "thresholdCiLowerDeg", NaN, "thresholdCiUpperDeg", NaN, ...
+        "thresholdPosteriorLogSd", NaN, "adaptivePosteriorEntropy", NaN, ...
         "trialCount", NaN, "proportionCorrect", NaN, ...
-        "finalReversalCount", NaN, "localAIRM", NaN, ...
+        "stopReason", "", "localAIRM", NaN, ...
         "predictedDPrimeReference", NaN, "predictedDPrimeField", NaN, ...
         "LSDdB", NaN);
+end
+
+function completed = completed_adaptive_trials(formal)
+    if ~ismember("sessionId", string(formal.Properties.VariableNames))
+        formal.sessionId = repmat("legacy", height(formal), 1);
+    end
+    groups = findgroups(formal.participantCode, formal.sessionId, formal.trackId);
+    complete = parse_logical(formal.staircaseComplete);
+    keepGroup = splitapply(@any, complete, groups);
+    completed = formal(keepGroup(groups), :);
+end
+
+function value = last_finite(track, variableName)
+    value = NaN;
+    if ~ismember(variableName, string(track.Properties.VariableNames))
+        return;
+    end
+    values = track.(variableName);
+    if ~isnumeric(values)
+        values = str2double(string(values));
+    end
+    index = find(isfinite(values), 1, "last");
+    if ~isempty(index)
+        value = values(index);
+    end
 end

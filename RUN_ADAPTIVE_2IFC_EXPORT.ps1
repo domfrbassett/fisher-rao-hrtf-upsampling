@@ -2,9 +2,7 @@ param(
     [string]$SonicomRoot = "",
     [string]$SofaFilePattern = "*_FreeFieldCompMinPhase_48kHz.sofa",
     [string]$MatlabCommand = "matlab",
-    [switch]$SkipExport,
-    [switch]$Subgrid,
-    [string]$RenderInterpolation = ""
+    [switch]$SkipExport
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,12 +24,7 @@ $env:FISHERRAO_METHODS = "SUpDEq_MCA,RANF,FSP_AE"
 $env:FISHERRAO_SOFA_FILE_PATTERN = $SofaFilePattern
 $env:FISHERRAO_USE_RANF_RAW_FOR_RENDERING = "true"
 $env:FISHERRAO_USE_FSP_AE_RAW_FOR_RENDERING = "true"
-if ($RenderInterpolation.Trim().Length -gt 0) {
-    $env:FISHERRAO_ADAPTIVE_RENDER_INTERPOLATION = $RenderInterpolation
-}
-elseif ($Subgrid) {
-    $env:FISHERRAO_ADAPTIVE_RENDER_INTERPOLATION = "SUpDEq_Bary_MCA_6dB"
-}
+$env:FISHERRAO_ADAPTIVE_RENDER_INTERPOLATION = "SUpDEq_Bary_MCA_6dB"
 
 if ($SonicomRoot.Trim().Length -gt 0) {
     if (-not (Test-Path $SonicomRoot)) {
@@ -62,6 +55,6 @@ finally {
 }
 
 Write-Host ""
-Write-Host "Adaptive listening-test build complete."
+Write-Host "Listening-test build complete."
 Write-Host "Open:"
-Write-Host "  http://127.0.0.1:4173/?config=config/experiment.adaptive.json"
+Write-Host "  http://127.0.0.1:4173/"

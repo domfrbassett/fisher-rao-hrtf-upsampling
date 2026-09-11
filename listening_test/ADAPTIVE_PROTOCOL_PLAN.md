@@ -1,151 +1,137 @@
-# Adaptive 2AFC Direction-Discrimination Protocol
+# Lateral 2AFC Threshold Protocol
 
-## Aim
+## Purpose
 
-The adaptive study estimates angular discrimination thresholds rather than
-accuracy at a fixed offset. This gives a behavioural threshold that can be
-compared after collection with the Fisher/CRB-predicted local scale and with
-reconstruction-induced AIRM discrepancy.
+The experiment estimates the angular separation producing 76% correct in a
+two-alternative forced-choice (2AFC) lateral judgement. For unbiased 2AFC,
+`d' = 1` gives `Phi(1/sqrt(2)) = 0.76025` proportion correct; 0.76 is used in
+the implementation. Threshold estimation is
+independent of the Fisher prediction; the predicted local threshold is used
+only in the subsequent comparison with behaviour.
 
-The adaptive staircase itself is not driven by the Fisher prediction. Fisher
-tensors are used only to select sensible starting regions and to interpret the
-resulting threshold estimates.
+## Stimuli and task
 
-## Participant Task
+Each trial contains two 650 ms binaural white-noise bursts separated by
+400 ms. One uses the HRTF at a fixed horizontal-plane anchor and the other a
+direction displaced by the selected angular separation. The participant clicks
+the sound, A or B, that appeared farther to the left.
 
-Each comparison contains two sounds, A and B, rendered from the same HRTF
-field. One sound is the standard direction and the other is displaced along one
-local tangent axis. The formal sub-grid bank uses SUpDEq barycentric rendering
-with magnitude correction and minimum-phase reconstruction. RANF and FSP-AE
-stimuli use raw full-field inference outputs for rendering, not the LAP-style
-retained-node-replaced SOFAs, because stitching measured retained nodes into a
-generated dense field introduced artificial discontinuities under continuous
-interpolation.
+The following are independently randomised on every formal trial:
 
-- lateral blocks: choose whether A or B sounded farther left;
-- polar blocks: choose whether A or B sounded higher.
+- whether the displaced direction is clockwise or anticlockwise from the
+  anchor;
+- whether the standard or displaced stimulus is presented as A;
+- a common trial-level gain in the range +/-1.5 dB.
 
-The A/B order is randomised independently for every comparison.
-For formal adaptive tracks, the displaced sound is also randomised across
-the two sides of the standard direction. Thus the displaced HRTF may be either
-farther left or farther right in lateral tracks, and either above or below in
-polar tracks. This prevents any residual timbral difference between the
-standard and displaced renderings from predicting the correct response.
+The same gain is applied to A and B. The two intervals at a given anchor and
+separation are convolved with the same noise token. These controls prevent
+interval order, displacement sign, source waveform, or absolute level from
+identifying the response.
 
-## Staircase Rule
+## Adaptive method
 
-The browser implements a hybrid staircase:
+Stimulus placement follows a Bayesian adaptive method based on the psi/QUEST+
+principle. The response model is a two-choice Weibull psychometric function.
+After each answer, Bayes' rule updates a joint posterior over threshold, slope,
+and lapse rate. The next separation is the available level with the lowest
+expected posterior entropy.
 
-- before the first reversal, one correct response makes the next comparison
-  harder, so easy separations are crossed quickly;
-- after the first reversal, two consecutive correct responses make the next
-  comparison harder;
-- one incorrect response makes the next comparison easier;
-- the angular separation levels are pre-rendered WAV pairs sorted from easy
-  to difficult;
-- the default stopping rule is 6 reversals after at least 14 comparisons, or
-  24 comparisons maximum;
-- the provisional threshold estimate stored with the response is the median
-  reversal separation after the first two reversals, falling back to the
-  median of the latter half of the track if there are too few reversals.
+Configuration:
 
-This rule converges near 70.7% correct. If a later protocol requires the
-2AFC equivalent of \(d'=1\), the rule can be changed to a QUEST/weighted
-staircase targeting approximately 76% correct.
+- target performance: 0.76 proportion correct;
+- 40 trials per track;
+- candidate separations: 30, 20, 15, 10, 7, 5, 3.5, 2.5, 1.75, 1.25,
+  0.9, and 0.6 degrees;
+- threshold prior: 51 equally weighted log-spaced values from 0.6 to
+  15 degrees;
+- slope values: 1.5, 2, 3, 4, 6, and 8;
+- lapse rates: 0, 0.02, and 0.05;
+- threshold estimate: posterior geometric mean;
+- uncertainty interval: 95% equal-tailed posterior credible interval.
 
-## Compact Formal Set
+Tracks use a fixed 40-trial budget instead of a reversal stopping rule. This
+avoids condition-dependent stopping and produces a posterior uncertainty
+estimate for every completed track. Estimates at 0.6 or 15 degrees must be
+reported as boundary-limited rather than as resolved thresholds beyond the
+stimulus range.
 
-Use a small number of virtual HRTF identities and methods. The adaptive
-procedure multiplies trial count by the number of tracks, so the first formal
-study should not mirror the entire objective benchmark.
+The adaptive method follows the joint threshold-and-slope Bayesian procedure
+of [Kontsevich and Tyler (1999)](https://doi.org/10.1016/S0042-6989(98)00285-5)
+and the more general QUEST+ formulation of
+[Watson (2017)](https://doi.org/10.1167/17.3.10). The 40-trial budget was also
+checked by simulation over thresholds from 0.75 to 14 degrees, slopes from 1.5
+to 8, and lapse rates from 0 to 0.05. The saved simulation report is
+`audit/adaptive_simulation.json`.
 
-Representative virtual identities:
+## Conditions
 
-- `P0100`
-- `P0080`
-- `P0033`
-- `P0104`
+The listening bank uses SONICOM subject P0033. This subject minimises the mean
+absolute robust-standardised distance from the 41-subject median across LSD,
+ILD error, and the lateral, local-polar, and quadrant localisation errors.
+Fisher-derived quantities were excluded from subject selection.
 
-These were selected as a compact subject bank close to the 41-subject cohort
-median over the listening-test methods and retention conditions. Selection
-used aggregate AIRM, LSD, ILD, and relative Barumerli localisation errors for
-`SUpDEq-MCA`, `RANF`, and `FSP-AE` at `N=19` and `N=5`.
+Seven field conditions are tested:
 
-Recommended fields:
+- measured dense HRTF, N=793;
+- SUpDEq-MCA, N=5 and N=19;
+- RANF, N=5 and N=19;
+- FSP-AE, N=5 and N=19.
 
-- `Measured`, `N=793`
-- `SUpDEq_MCA`, `N=19` and `N=5`
-- `RANF`, `N=19` and `N=5`
-- `FSP_AE`, `N=19` and `N=5`
+RANF and FSP-AE use raw full-field outputs without retained-node replacement.
+This avoids the phase discontinuities introduced when measured HRIRs are
+stitched into an otherwise generated field.
 
-The compact sub-grid bank samples a balanced subset of these conditions rather than
-the full Cartesian product. Lateral discrimination is sampled within the
-frontal hemifield on the horizontal plane. Polar discrimination is sampled at
-frontal-hemifield azimuths with azimuth held constant and elevation displaced
-upward:
+Four anchor instances are used on the horizontal plane: -45, 0, +45, and a
+second independent track at 0 degrees. Every participant completes all seven
+conditions at every anchor instance, giving 28 threshold tracks. The repeated
+frontal anchor permits a within-session reliability check.
 
-```text
-lateral anchors: (-45,0), (0,0), (45,0)
-polar anchors:   (-45,0), (0,0), (45,0)
-```
+Tracks are divided into four seven-track blocks. Both block order and track
+order within each block are randomised per participant. Each block therefore
+contains 280 formal responses and is expected to take approximately 12-18
+minutes. Participants may stop between blocks and resume with the same code;
+the left/right headphone check is repeated after a later resumption.
+The block length follows the recommendation that uninterrupted listening
+sessions should not exceed approximately 15-20 minutes in
+[ITU-R BS.1679-1](https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1679-1-201510-I%21%21PDF-E.pdf).
 
-The rendered bank contains all four virtual HRTF identities within each
-participant's test, avoiding a whole-session dependence on one non-individual
-HRTF. The current compact bank has 32 adaptive tracks, split into four
-8-track sections:
+## Rendering
 
-```text
-2 lateral sections + 2 polar sections
-```
-
-Across the full bank, `SUpDEq_MCA`, `RANF`, and `FSP_AE` each appear at both
-`N=19` and `N=5`, alongside measured-reference tracks for the same virtual
-subjects. Sections may be completed in separate sittings; if the participant
-resumes later, the audio check is repeated before continuing.
-
-## Build Command
-
-From the project root, build the adaptive bank with:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\RUN_ADAPTIVE_2IFC_EXPORT.ps1
-```
-
-The command exports the selected HRIR fields and fresh Fisher tensors,
-generates the adaptive condition plan, renders the offline WAV levels, writes
-`public/config/trials.adaptive.json`, and audits the manifest. Open the study
-with:
-
-```text
-http://127.0.0.1:4173/?config=config/experiment.adaptive.json
-```
-
-## Angular Levels
-
-Lateral tracks use the following requested angular offsets:
-
-```text
-lateral: 30, 20, 15, 10, 7, 5, 3.5, 2.5, 1.75, 1.25 deg
-```
-
-Polar tracks use:
-
-```text
-polar: 30, 20, 15, 10, 7, 5, 3.5, 2.5 deg
-```
-
-The same requested standard/target directions are used for every method within
-a subject, axis, anchor, and level.
+All formal audio is rendered offline at 48 kHz as stereo 24-bit WAV. A single
+650 ms Gaussian white-noise token with 20 ms cosine onset and offset ramps is
+used for each anchor/separation pair across all methods. HRTFs at intermediate
+directions are rendered using the SUpDEq preprocessing, barycentric
+interpolation, and magnitude-correction chain with a 6 dB maximum boost and
+minimum-phase magnitude correction. Within each comparison, standard and
+target signals share a common peak normalisation.
 
 ## Analysis
 
-For each listener and adaptive track, estimate a threshold in degrees. Primary
-comparisons:
+Only complete 40-trial tracks enter the primary analysis. The basic outcome is
+the posterior threshold in degrees with its 95% credible interval. The primary
+method comparison is the log threshold difference between each reconstructed
+condition and the measured condition at the same anchor. A repeated-measures
+model should use the seven-level field condition, anchor, and their interaction
+as fixed effects, with participant as a random intercept and a participant
+random slope when supported by the data. Planned contrasts compare each
+reconstruction with the measured field at the matched anchor, with multiplicity
+control declared before analysis. The association between behavioural
+threshold error and local Fisher-predicted threshold error is the principal
+validation analysis; AIRM, LSD, and ILD error are secondary predictors.
 
-1. dense measured threshold versus dense Fisher/CRB prediction;
-2. reconstructed threshold minus dense measured threshold;
-3. threshold change versus local AIRM discrepancy;
-4. threshold change versus LSD and Bayesian-observer summaries.
+The frontal repeat should be analysed separately as a within-session
+repeatability check. Boundary-limited estimates should be identified and
+included in a sensitivity analysis rather than treated as measurements beyond
+the tested range. Pilot records and tracks from earlier manifest versions must
+not be pooled with the current protocol.
 
-The main behavioural claim should concern preservation of local
-discriminability, not absolute localisation accuracy.
+## Build
+
+From the project root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\RUN_ADAPTIVE_2IFC_EXPORT.ps1 -SkipExport
+```
+
+The command writes the condition plan, renders the WAV bank, creates
+`public/config/trials.adaptive.json`, and audits all tracks and file references.

@@ -179,9 +179,7 @@ def render_contact_sheet(covariance: np.ndarray, cart: np.ndarray, indices: np.n
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     png_path = OUTPUT_DIR / f"{OUTPUT_STEM}.png"
-    pdf_path = OUTPUT_DIR / f"{OUTPUT_STEM}.pdf"
     sheet.save(png_path)
-    sheet.save(pdf_path, "PDF", resolution=700.0)
 
 
 def main() -> None:

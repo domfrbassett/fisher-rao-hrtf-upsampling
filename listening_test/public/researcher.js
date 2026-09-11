@@ -33,7 +33,7 @@ function renderManifestSummary(config, manifest) {
   const cards = [
     ["Manifest", config.manifest || "config/trials.adaptive.json"],
     ["Version", manifest.manifestVersion || config.manifestVersion || "unknown"],
-    ["Renderer", manifest.renderInterpolation || "StoredGridOnly"],
+    ["Renderer", manifest.renderInterpolation || "Not reported"],
     ["Virtual identities", virtualSubjects.map(formatSubject).join(", ")]
   ];
   document.getElementById("design-cards").innerHTML = cards.map(([label, value]) =>

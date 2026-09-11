@@ -48,6 +48,8 @@ ml_comparator_research/**/outputs/
 # Listening-test generated assets and response data
 listening_test/node_modules/
 listening_test/dist/
+listening_test/.wrangler/
+listening_test/.openai/
 listening_test/fields/
 listening_test/dense_render_validation/
 listening_test/public/audio/**/*.wav
@@ -56,8 +58,10 @@ listening_test/public/audio/**/*.mp3
 listening_test/public/audio/**/*.ogg
 listening_test/server/data/*
 !listening_test/server/data/.gitkeep
+listening_test/server/data_backup_*/
 listening_test/exports/*
 !listening_test/exports/.gitkeep
+listening_test/runinfo.txt
 listening_test/matlab/adaptive_condition_plan.csv
 listening_test/**/*.mat
 listening_test/**/*.sofa

@@ -21,7 +21,7 @@ The wrapper expects a lightly patched RANF checkout so that SONICOM masks, retri
 - `ranf/compute_spec_ild_itd_for_sonicom_datasets.py`
 - `ranf/utils/sonicom_dataset_retrieval.py`
 
-Those changes are not included here because they modify the external method implementation. If reproducing the exact run, apply the compatibility patch to a local RANF checkout, then keep that patched checkout outside this repository.
+Those compatibility changes belong in a separate RANF checkout and are not redistributed here. The helper `scripts/patch_ranf_evaluator_raw_export.py` makes the additional evaluation-only change used to export complete model-generated fields without retained-node replacement. Apply it only after preparing a compatible local RANF checkout, and keep that checkout outside this repository.
 
 ## Typical Order
 

@@ -30,28 +30,14 @@ function audit = run_adaptive_2ifc_export_and_build(projectRoot, skipExport)
     matlabRoot = fullfile(studyRoot, "matlab");
     addpath(char(matlabRoot), "-begin");
 
-    renderInterpolation = string(getenv("FISHERRAO_ADAPTIVE_RENDER_INTERPOLATION"));
-    if strlength(renderInterpolation) == 0
-        renderInterpolation = "StoredGridOnly";
-    end
-    snapTargetsToGrid = renderInterpolation == "StoredGridOnly";
-    manifestVersion = "adaptive-v4-grid-native-balanced-subjects";
-    lateralLevels = [30, 20, 15, 10, 5];
-    polarLevels = [30, 20, 15, 10, 5];
-    if renderInterpolation == "LocalMinimumPhaseDelayIDW"
-        manifestVersion = "adaptive-v3-minphase-delay-idw-floorstop";
-        lateralLevels = [30, 20, 15, 10, 7, 5, 3.5, 2.5, 1.75, 1.25];
-        polarLevels = [30, 20, 15, 10, 7, 5, 3.5, 2.5];
-    elseif renderInterpolation ~= "StoredGridOnly"
-        manifestVersion = "adaptive-v5-subgrid-supdeq-raw-ml";
-        lateralLevels = [30, 20, 15, 10, 7, 5, 3.5, 2.5, 1.75, 1.25];
-        polarLevels = [30, 20, 15, 10, 7, 5, 3.5, 2.5];
-    end
+    renderInterpolation = "SUpDEq_Bary_MCA_6dB";
+    snapTargetsToGrid = false;
+    manifestVersion = "adaptive-v9-lateral-psi-dprime1-raw-ml";
+    lateralLevels = [30, 20, 15, 10, 7, 5, 3.5, 2.5, 1.75, 1.25, 0.9, 0.6];
 
-    plan = generate_adaptive_condition_plan(studyRoot, ...
+    plan = generate_lateral_median_head_condition_plan(studyRoot, ...
         "snapTargetsToGrid", snapTargetsToGrid, ...
-        "lateralAngularLevelsDeg", lateralLevels, ...
-        "polarAngularLevelsDeg", polarLevels); %#ok<NASGU>
+        "angularLevelsDeg", lateralLevels); %#ok<NASGU>
     manifest = build_adaptive_2ifc_stimulus_bank( ...
         fullfile(matlabRoot, "adaptive_condition_plan.csv"), publicRoot, ...
         "manifestVersion", manifestVersion, ...

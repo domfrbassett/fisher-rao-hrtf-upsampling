@@ -1,46 +1,60 @@
-﻿# Fisher-Rao HRTF Upsampling Evaluation
+# Fisher Information for HRTF Upsampling Evaluation
 
-This repository contains the manuscript source and reproducibility code for a Fisher-information-based evaluation of HRTF spatial upsampling methods.
+This repository accompanies the paper *On Using Fisher Information to Evaluate
+the Preservation of Spatial Discriminability in HRTF Upsampling*. It contains
+the IEEE manuscript, the evaluation code, the summary data used in the paper,
+and the scripts that generate its figures and tables.
 
-The repository includes the paper source, compiled PDFs, figures and tables used in the manuscript, evaluation scripts, plotting scripts, compatibility shims, and wrapper code for the learning-based comparators. Large datasets, generated SOFA files, MATLAB tensor checkpoints, third-party toolbox distributions, trained model checkpoints, and cloned upstream repositories are not included.
+## Repository contents
 
-## Contents
+- `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `.pdf`: manuscript source and compiled paper.
+- `run_hrtf_fisher_rao_evaluation.m`: signal, Bayesian localisation, and Fisher-tensor evaluation.
+- `run_hrtf_fisher_rao_hu_protocol.m`: 41-subject SONICOM protocol wrapper.
+- `scripts/`: figure, table, correlation, and audit scripts.
+- `results/`: manuscript summary data and compact audit outputs.
+- `figures/evaluation/` and `tables/evaluation/`: manuscript figures and TeX table fragments.
+- `ml_comparator_research/`: SONICOM adapters for RANF and FSP-AE. The upstream repositories are installed separately.
+- `listening_test/`: source and protocol documentation for the lateral 2AFC study. Stimulus WAVs and participant responses are excluded from Git.
 
-- `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.pdf`: two-column manuscript.
-- `run_hrtf_fisher_rao_evaluation.m`: MATLAB evaluation pipeline for signal metrics, Barumerli-style localisation metrics, and Fisher tensor discrepancy.
-- `run_hrtf_fisher_rao_hu_protocol.m`: wrapper for the 41-subject sparse-mask protocol used for the machine-learning comparator evaluation.
-- `scripts/`: Python scripts used to regenerate manuscript figures and tables from summary CSVs.
-- `figures/evaluation/` and `tables/evaluation/`: paper figures and table fragments used by the TeX source.
-- `ml_comparator_research/comparator_protocol/`: shared SONICOM protocol tools and the first-party RANF adapter. The upstream RANF repository is required separately.
-- `ml_comparator_research/fsp_ae_sonicom/`: first-party FSP-AE SONICOM adaptation wrapper. The upstream FSP-AE source tree is required separately.
-- `barumerli_compatibility/` and `sfs_compatibility/`: small compatibility shims used by the MATLAB evaluation scripts.
-- `listening_test/`: two-interval listening-test source, Cloudflare Worker, configuration manifests, and MATLAB stimulus-bank builders. Generated WAV stimuli and response data are excluded from Git.
+The large source datasets, reconstructed SOFA files, per-direction MATLAB
+tensors, trained model checkpoints, third-party toolboxes, and cloned upstream
+repositories are not included.
 
-## External Data And Dependencies
+## Regenerate the manuscript figures
 
-The evaluation expects local copies of:
-
-- SONICOM HRTF SOFA files.
-- AMT / SOFA Toolbox for MATLAB.
-- SUpDEq and its third-party MATLAB dependencies.
-- A Python environment with `numpy`, `pandas`, and `matplotlib` for figure regeneration.
-- The public RANF repository when reproducing RANF outputs.
-- The public FSP-AE repository code path used by `ml_comparator_research/fsp_ae_sonicom`.
-
-Configure local paths through the environment variables documented in the scripts, or mirror the directory layout used in the comments of `run_hrtf_fisher_rao_evaluation.m`.
-
-## Rebuilding Paper Figures
-
-From the repository root:
+The committed summary CSV files are sufficient to rebuild the figures and TeX
+tables used by the paper:
 
 ```powershell
+python scripts/plot_median_crb_ellipses.py
+python scripts/plot_barumerli_sonicom41_map_ellipses.py
 python scripts/generate_paper_assets.py
 python scripts/calculate_metric_correlations.py
 python scripts/regenerate_local_threshold_plausibility_table.py
 ```
 
-The included summary CSVs regenerate the manuscript figures and TeX table fragments. Full recomputation from SOFA files requires the external datasets and MATLAB toolboxes listed above.
+To compile the IEEE manuscript with MiKTeX:
 
-## Data Availability
+```powershell
+powershell -ExecutionPolicy Bypass -File .\BUILD_PAPER.ps1
+```
 
-If you are a researcher seeking to reproduce or extend the work, please contact the author. Generated outputs such as reconstructed SOFA files can be shared where licensing and dataset terms permit. Third-party datasets, toolbox code, and external model repositories should be obtained from their original sources.
+## Full evaluation
+
+Recomputing the results from HRIRs requires the 48-kHz SONICOM
+`FreeFieldCompMinPhase` SOFA files, MATLAB, AMT with the SOFA Toolbox, SUpDEq,
+and the external RANF and FSP-AE repositories. Local paths and optional
+environment overrides are described in `EXTERNAL_DEPENDENCIES.md` and in the
+entry-point scripts.
+
+The final machine-learning comparison uses the complete model-generated RANF
+and FSP-AE fields without replacing retained nodes with measured HRIRs. FSP-AE
+LSD is evaluated up to its configured 16-kHz output limit; the other reported
+LSD values use the common LAP/SAM band up to 20 kHz.
+
+## Data access
+
+Researchers seeking to reproduce or extend the work are welcome to contact the
+authors. Generated outputs, including reconstructed SOFA files, can be shared
+where the licences and dataset terms permit. Third-party datasets, toolboxes,
+and model repositories should be obtained from their original sources.

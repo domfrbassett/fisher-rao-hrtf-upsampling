@@ -215,16 +215,38 @@ progress {
   border: 2px solid transparent;
   border-radius: 12px;
   color: var(--muted);
+  cursor: default;
+  font-size: 1.08rem;
   font-weight: 600;
   min-width: 138px;
   padding: 22px 18px;
   text-align: center;
 }
 
+.interval:disabled {
+  opacity: 1;
+}
+
 .interval.playing {
   background: #e1efef;
   border-color: var(--accent);
   color: var(--accent-dark);
+}
+
+.interval.response-enabled {
+  background: #e8efef;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.interval.response-enabled:hover {
+  background: #d9e5e5;
+}
+
+.interval.selected {
+  background: var(--accent);
+  border-color: var(--accent-dark);
+  color: #fff;
 }
 
 .button-row {

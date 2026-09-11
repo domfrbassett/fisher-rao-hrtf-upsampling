@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUT_CSV = ROOT / "results" / "audits" / "barumerli_sonicom41_median_tensor.csv"
-OUTPUT_ROOT = ROOT / "figures" / "diagnostics" / "barumerli_sonicom41"
+OUTPUT_ROOT = ROOT / "figures" / "evaluation"
 
 ELLIPSE_SCALE = 1.0
 VISIBLE_TOLERANCE = 1.0e-9
@@ -221,9 +221,7 @@ def render_contact_sheet(positions: np.ndarray, covariances: np.ndarray, output_
 
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     png_path = OUTPUT_ROOT / f"{output_stem}.png"
-    pdf_path = OUTPUT_ROOT / f"{output_stem}.pdf"
     sheet.save(png_path)
-    sheet.save(pdf_path, "PDF", resolution=700.0)
 
 
 def main() -> None:
@@ -231,7 +229,7 @@ def main() -> None:
     render_contact_sheet(
         positions,
         covariances,
-        "barumerli_sonicom41_map_response_covariance",
+        "median_barumerli_map_response_covariance",
     )
     print(f"Loaded {len(positions)} median covariance ellipses from {INPUT_CSV}")
     print(f"Wrote outputs to {OUTPUT_ROOT}")

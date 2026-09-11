@@ -25,13 +25,13 @@
       <h2 id="start-heading">Before you begin</h2>
       <p>
         You will hear two brief sounds in each trial and decide which sound was
-        farther left or higher up. Please complete the task in a quiet place
-        using headphones.
+        farther to the left. Please complete the task in a quiet place using
+        headphones.
       </p>
       <label class="field">
         <span>Participant code</span>
         <input id="participant-code" type="text" maxlength="32" autocomplete="off"
-          placeholder="Participant code">
+          placeholder="Code supplied by researcher">
       </label>
       <label class="field">
         <span>Listening environment</span>
@@ -97,18 +97,13 @@
       <h2 id="trial-heading">Trial</h2>
       <p id="trial-question" class="question"></p>
       <div class="interval-display" aria-live="polite">
-        <div id="interval-one" class="interval">A</div>
-        <div id="interval-two" class="interval">B</div>
+        <button id="interval-one" class="interval" type="button" disabled>A</button>
+        <button id="interval-two" class="interval" type="button" disabled>B</button>
       </div>
       <div class="button-row">
         <button id="play-button" class="primary">Play trial</button>
         <button id="replay-button" class="secondary hidden">Replay once</button>
       </div>
-      <fieldset id="answer-fieldset" class="answers" disabled>
-        <legend>Your response</legend>
-        <button id="answer-one" class="answer">A</button>
-        <button id="answer-two" class="answer">B</button>
-      </fieldset>
       <p id="feedback" class="feedback hidden" aria-live="polite"></p>
       <button id="next-button" class="primary hidden">Next trial</button>
     </section>
@@ -139,6 +134,7 @@
     </section>
   </main>
 
-  <script src="app.js?v=20260810-lr-check"></script>
+  <script src="adaptive.js?v=20260911-v9"></script>
+  <script src="app.js?v=20260911-v9"></script>
 </body>
 </html>

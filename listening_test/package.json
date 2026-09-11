@@ -2,10 +2,11 @@
   "name": "fisher-rao-hrtf-2ifc-study",
   "version": "0.1.0",
   "private": true,
-  "description": "Web-delivered two-interval HRTF direction-discrimination experiment.",
+  "description": "Web-delivered two-alternative forced-choice HRTF direction-discrimination experiment.",
   "scripts": {
     "start": "node server/server.js",
-    "check": "node --check server/server.js && node --check public/app.js && node --check worker/sites-worker.js",
+    "check": "node --check server/server.js && node --check public/adaptive.js && node --check public/app.js && node --check worker/sites-worker.js && node tests/adaptive.test.js",
+    "simulate:adaptive": "node scripts/simulate-adaptive.js",
     "build:sites": "node scripts/build-sites-worker.js",
     "deploy:cloudflare": "wrangler deploy",
     "tail:cloudflare": "wrangler tail",

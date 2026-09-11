@@ -1,90 +1,76 @@
-# HTTPS Deployment Notes
+# Cloudflare deployment and data export
 
-This listening study is designed for deployment as a static web application
-with API routes for session and response storage. The browser plays
-pre-rendered WAV files; no MATLAB code is required on the server.
+The public study is a Cloudflare Worker with static assets and a D1 database.
+MATLAB is required only to rebuild the audio bank, not to serve the experiment.
 
-The current deployment uses Cloudflare Workers, static assets, and D1:
+## Live study
 
 ```text
 https://fisher-rao-hrtf-2ifc.fr-hrtf-study.workers.dev/
 ```
 
-## Requirements
+The Worker is `fisher-rao-hrtf-2ifc`. Its `DB` binding points to
+`fisher-rao-hrtf-2ifc-db`. Participant responses, pauses, and completions are
+stored in D1; closing a browser does not remove submitted responses.
 
-For participant testing, use a university-approved or supervisor-approved
-hosting route where:
+## Deploy
 
-- the site is served over HTTPS;
-- response data are stored persistently, for example in D1;
-- access to `/api/export.csv` is protected with `EXPORT_KEY`;
-- generated WAV stimuli in `public/audio/adaptive/` are included in the
-  deployed artifact;
-- institutional data-protection and ethics requirements are satisfied.
-
-## Files That Must Be Deployed
-
-Deploy the `listening_test` folder with:
-
-- `package.json`
-- `worker/sites-worker.js`
-- `public/`
-- `public/audio/adaptive/*.wav`
-- `public/config/trials.adaptive.json`
-- `public/config/experiment.adaptive.json`
-
-The `.mat` files in `fields/` are not needed by participants. They are needed
-only when rebuilding the stimulus bank or running MATLAB-side checks, and are
-therefore excluded from Git.
-
-## Cloudflare Setup
-
-Create a D1 database and insert the resulting database ID into
-`wrangler.toml`:
+Run from `listening_test`:
 
 ```powershell
-npx.cmd wrangler d1 create fisher-rao-hrtf-2ifc-db
+npm.cmd run check
+npx.cmd wrangler deploy
 ```
 
-The Worker creates the required D1 tables and indexes on first request.
+The deployment uploads `public/`, including all files beneath
+`public/audio/adaptive/`, and deploys `worker/sites-worker.js`.
 
-Set the export key:
+## Protect response export
+
+The CSV endpoint requires a Worker secret named `EXPORT_KEY`. Set or replace it
+with:
 
 ```powershell
 npx.cmd wrangler secret put EXPORT_KEY
 ```
 
-Deploy:
+Wrangler prompts for the value. Do not place the key in `wrangler.toml` or the
+repository.
+
+## Export every response
 
 ```powershell
-npx.cmd wrangler deploy
+$key = Read-Host "Export key"
+$headers = @{ Authorization = "Bearer $key" }
+Invoke-WebRequest `
+  -Uri "https://fisher-rao-hrtf-2ifc.fr-hrtf-study.workers.dev/api/export.csv" `
+  -Headers $headers `
+  -OutFile ".\responses.csv"
 ```
 
-## Data Export
-
-The CSV export endpoint is:
-
-```text
-https://<worker-url>/api/export.csv?key=<EXPORT_KEY>
-```
-
-For a direct D1 backup:
+## Extract one participant
 
 ```powershell
-npx.cmd wrangler d1 export fisher-rao-hrtf-2ifc-db --remote --output ".\exports\d1_backup.sql"
+$code = "PARTICIPANT_CODE"
+Import-Csv ".\responses.csv" |
+  Where-Object participantCode -eq $code |
+  Export-Csv ".\responses_$code.csv" -NoTypeInformation
 ```
 
-For local testing without Cloudflare, run `node server\server.js`; responses
-are written to `server/data/`.
+## Check the deployment
 
-## Remote-Testing Caveats
+```powershell
+curl.exe "https://fisher-rao-hrtf-2ifc.fr-hrtf-study.workers.dev/api/health"
+```
 
-Remote participation is technically possible but less controlled than a
-supervised lab session. The participant information and ethics application
-should account for:
+The health response should identify the Cloudflare D1 store. Test the complete
+participant flow after every manifest deployment: consent, headphone check,
+practice, one formal response, pause, and resume with the same participant
+code.
 
-- headphone requirement and left/right channel checking;
-- quiet-room self-report;
-- inability to verify exact headphone model and playback level;
-- browser/device variability;
-- withdrawal and deletion procedures for coded response data.
+## Data handling
+
+Participant codes must not contain names or email addresses. Keep exported CSV
+files in the approved university research-data location and limit access to the
+researcher and authorised supervisors. Records from earlier pilot manifests
+remain separable through the `manifestVersion` field.

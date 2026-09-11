@@ -1,4 +1,4 @@
-﻿%% run_hrtf_fisher_rao_evaluation.m
+%% run_hrtf_fisher_rao_evaluation.m
 % Full evaluation pipeline for HRTF spatial upsampling. The script computes:
 %   - signal-level metrics
 %   - AMT Bayesian localisation metrics
@@ -58,8 +58,8 @@ cfg.toolbox.triangleRayIntersectionRoot = fullfile(supdeqRoot, ...
     "thirdParty", "TriangleRayIntersection");
 
 % Default to the full measured SONICOM cohort. The comparator-protocol
-% wrapper overrides these fields with the held-out SONICOM split and sparse
-% masks used for the manuscript comparisons.
+% wrapper overrides these fields with the held-out split and sparse masks
+% used for the manuscript comparisons.
 cfg.randomSeed = 0;
 cfg.subjectPopulation = 1:203;
 cfg.subjectIds = cfg.subjectPopulation;
@@ -188,6 +188,22 @@ if cfg.execution.perceptualOnly
         "Perceptual-only execution requires cfg.runPerceptualModel=true.");
 end
 
+% Behavioural 2IFC stimulus export. Enable exportOnly in a deliberate,
+% separate MATLAB invocation by setting FISHER_RAO_BEHAVIOURAL_EXPORT_ONLY
+% to "true" after choosing the virtual HRTF identities.
+% This path reconstructs acoustic fields only; it does not run the lengthy
+% Barumerli observer. It recomputes fresh Fisher tensors for only the
+% exported behavioural fields so no obsolete checkpoint tensor is reused.
+cfg.behavioural.exportOnly = strcmpi( ...
+    string(getenv("FISHER_RAO_BEHAVIOURAL_EXPORT_ONLY")), "true");
+cfg.behavioural.outputRoot = fullfile(studyRoot, ...
+    "listening_test", "fields");
+cfg.behavioural.metricTensorRoot = fullfile(cfg.behavioural.outputRoot, ...
+    "metric_tensors");
+cfg.behavioural.virtualHrtfSubjectIds = 33;
+cfg.behavioural.methods = ["SUpDEq_MCA", "RANF", "FSP_AE"];
+cfg.behavioural.retentionConditions = [19, 5];
+
 % Figures and exported summary tables
 cfg.plots.enabled = true;
 cfg.plots.visible = "off";
@@ -224,6 +240,11 @@ upsamplers = initialise_upsampling_methods(cfg);
 %% Spatial downsampling through seeded FPS / point elimination
 
 sampling = create_sampling_conditions(dataset, cfg);
+
+if cfg.behavioural.exportOnly
+    export_behavioural_hrir_fields(dataset, upsamplers, sampling, cfg);
+    return;
+end
 
 if cfg.execution.streaming
     [airmSummary, representative] = run_streaming_evaluation( ...
@@ -551,13 +572,12 @@ function [summary, representative] = run_streaming_evaluation( ...
 
                 signal = evaluate_signal_metrics(target, recon, cfg);
                 if recon.isAvailable
-                    [fisher, reconstructedFeatures, targetCueCache] = ...
+                    [fisher, ~, targetCueCache] = ...
                         evaluate_fisher_tensor_airm( ...
                             target, recon, cfg, targetCueCache);
                 else
                     fisher = unavailable_fisher_result(size(target.r, 1), ...
                         recon.message, cfg);
-                    reconstructedFeatures = struct();
                 end
                 write_metric_tensor_files(target, method, sampling(iCondition), ...
                     fisher, cfg);
@@ -760,6 +780,139 @@ function write_metric_tensor_files(target, method, samplingCondition, fisher, cf
         "retainedDirections", "coordinatesCartesian", ...
         "coordinatesAzimuthElevationDeg", "metricTensor", "itdMode", ...
         "cueExtractionMode", "status", "message", "-v7.3");
+
+end
+
+function export_behavioural_hrir_fields(seedDataset, upsamplers, sampling, cfg)
+% Export dense-reference and selected reconstructed HRIR fields plus freshly
+% recomputed Fisher tensors, without launching the virtual-listener study.
+
+    assert(cfg.execution.streaming, ...
+        "Behavioural export mode currently expects streaming subject loading.");
+    assert(~isempty(cfg.behavioural.virtualHrtfSubjectIds), ...
+        "Set cfg.behavioural.virtualHrtfSubjectIds before exporting stimuli.");
+    assert(all(ismember(cfg.behavioural.virtualHrtfSubjectIds, cfg.validationIds)), ...
+        "Behavioural virtual HRTF identities must come from the declared evaluation cohort.");
+
+    methodNames = string({upsamplers.name});
+    [methodFound, methodIndices] = ismember(cfg.behavioural.methods, methodNames);
+    assert(all(methodFound), ...
+        "Every cfg.behavioural.methods entry must occur in cfg.methods.");
+    retentionCounts = [sampling.retentionCount];
+    [retentionFound, retentionIndices] = ismember( ...
+        cfg.behavioural.retentionConditions, retentionCounts);
+    assert(all(retentionFound), ...
+        "Every behavioural retention condition must occur in cfg.retentionConditions.");
+    ensure_results_folder(cfg.behavioural.outputRoot);
+    ensure_results_folder(cfg.behavioural.metricTensorRoot);
+    compatibilityCleanup = activate_barumerli_compatibility(cfg); %#ok<NASGU>
+
+    for subjectId = cfg.behavioural.virtualHrtfSubjectIds
+        target = load_streaming_subject(seedDataset(1), subjectId, cfg);
+        subjectFolder = fullfile(cfg.behavioural.outputRoot, ...
+            sprintf("subject_%04d", subjectId));
+        tensorSubjectFolder = fullfile(cfg.behavioural.metricTensorRoot, ...
+            sprintf("subject_%04d", subjectId));
+        ensure_results_folder(subjectFolder);
+        ensure_results_folder(tensorSubjectFolder);
+        write_behavioural_hrir_field(target, subjectFolder, "Measured", 793, ...
+            "dense_reference", cfg);
+        targetCueCache = struct();
+        [referenceFisher, ~, targetCueCache] = evaluate_fisher_tensor_airm( ...
+            target, target, cfg, targetCueCache);
+        referenceSignal = struct("LSD", 0, "ILD", 0, "status", "completed", ...
+            "message", "");
+        write_behavioural_metric_tensor(target, tensorSubjectFolder, ...
+            "Measured", 793, "dense_reference", referenceFisher.targetTensor, ...
+            referenceFisher.targetITDMode, referenceSignal, cfg);
+
+        for iRetention = retentionIndices
+            sparseField = subset_spatial_field(target, ...
+                sampling(iRetention).retainedIndices);
+            for iMethod = methodIndices
+                method = upsamplers(iMethod);
+                recon = reconstruct_hrtf_field(sparseField, target.r, method, cfg);
+                if recon.isAvailable
+                    write_behavioural_hrir_field(recon, subjectFolder, ...
+                        method.name, sampling(iRetention).retentionCount, ...
+                        "reconstruction", cfg);
+                    [fisher, ~, targetCueCache] = evaluate_fisher_tensor_airm( ...
+                        target, recon, cfg, targetCueCache);
+                    signal = evaluate_signal_metrics(target, recon, cfg);
+                    write_behavioural_metric_tensor(target, tensorSubjectFolder, ...
+                        method.name, sampling(iRetention).retentionCount, ...
+                        "reconstruction", fisher.reconstructedTensor, ...
+                        fisher.reconstructedITDMode, signal, cfg);
+                else
+                    warning("Skipping behavioural field %s, N=%d, subject %d: %s", ...
+                        method.name, sampling(iRetention).retentionCount, ...
+                        subjectId, recon.message);
+                end
+            end
+        end
+    end
+
+    fprintf("Fresh behavioural HRIR and metric-tensor export complete: %s\n", ...
+        cfg.behavioural.outputRoot);
+
+end
+
+function write_behavioural_hrir_field(sourceField, subjectFolder, ...
+        methodName, retainedDirections, fieldType, cfg)
+
+    field.hrir = sourceField.hrir;
+    field.fs = sourceField.fs;
+    field.r = sourceField.r;
+    field.azElDeg = sourceField.azElDeg;
+    field.complexHrtf = sourceField.complexHrtf;
+    field.hrtfMag = sourceField.hrtfMag;
+    if isfield(sourceField, "fftLength") && ~isempty(sourceField.fftLength)
+        field.fftLength = sourceField.fftLength;
+    else
+        field.fftLength = cfg.fftLength;
+    end
+    field.hasInterauralDelay = sourceField.hasInterauralDelay;
+    field.itdProvenance = sourceField.itdProvenance;
+    field.methodName = string(methodName);
+    field.retainedDirections = retainedDirections;
+    field.fieldType = string(fieldType);
+    fileMethod = regexprep(char(methodName), "[^A-Za-z0-9_]", "_");
+    filePath = fullfile(subjectFolder, sprintf( ...
+        "%s_N%03d_hrir_field.mat", fileMethod, retainedDirections));
+    save(filePath, "field", "-v7.3");
+
+end
+
+function write_behavioural_metric_tensor(target, tensorSubjectFolder, ...
+        methodName, retainedDirections, fieldType, tensor, itdModeValue, signal, cfg)
+
+    subjectId = target.subjectId;
+    sourceFile = target.filePath;
+    methodName = string(methodName);
+    retainedDirections = double(retainedDirections);
+    coordinatesCartesian = target.r;
+    coordinatesAzimuthElevationDeg = target.azElDeg;
+    metricTensor = tensor;
+    itdMode = string(itdModeValue);
+    cueExtractionMode = cfg.fisher.cueConvention;
+    sigmaMon = cfg.sigmaMon;
+    sigmaILD = cfg.sigmaILD;
+    sigmaITD = cfg.sigmaITD;
+    eta = cfg.eta;
+    LSDdB = signal.LSD;
+    ILDErrorDb = signal.ILD;
+    status = string(signal.status);
+    tensorProvenance = "fresh_behavioural_export_current_fisher_code";
+    generatedAt = string(datetime("now", "Format", "yyyy-MM-dd HH:mm:ss"));
+    fileMethod = regexprep(char(methodName), "[^A-Za-z0-9_]", "_");
+    tensorPath = fullfile(tensorSubjectFolder, sprintf( ...
+        "%s_N%03d_metric_tensor.mat", fileMethod, retainedDirections));
+    save(tensorPath, "subjectId", "sourceFile", "methodName", ...
+        "retainedDirections", "fieldType", "coordinatesCartesian", ...
+        "coordinatesAzimuthElevationDeg", "metricTensor", "itdMode", ...
+        "cueExtractionMode", "sigmaMon", "sigmaILD", "sigmaITD", "eta", ...
+        "LSDdB", "ILDErrorDb", "status", "tensorProvenance", ...
+        "generatedAt", "-v7.3");
 
 end
 
@@ -1623,9 +1776,11 @@ function cfg = apply_comparator_protocol_config(cfg, studyRoot)
         "ml_comparator_research", "comparator_protocol", "work");
     cfg.externalComparators.alignedRoot = fullfile( ...
         cfg.externalComparators.root, "ml_lap_aligned");
-    % Final reported comparator set. Earlier exploratory ML comparators are
-    % omitted from the manuscript run because the reproduced public artefacts
-    % did not provide paper-matching, independently verifiable results.
+    alignedRootOverride = string(getenv("FISHERRAO_EXTERNAL_ALIGNED_ROOT"));
+    if strlength(alignedRootOverride) > 0
+        cfg.externalComparators.alignedRoot = char(alignedRootOverride);
+    end
+    % Comparator set reported in the manuscript.
     cfg.methods = ["SUpDEq_SH", "SUpDEq_MCA", ...
         "SUpDEq_NN_MCA_6dB", "SUpDEq_Bary_MCA_6dB", ...
         "RANF", "FSP_AE"];
@@ -2842,9 +2997,6 @@ function azEl = plotting_azimuth_elevation(azEl)
     azEl(:, 1) = mod(azEl(:, 1) + 180, 360) - 180;
 
 end
-
-
-
 
 
 

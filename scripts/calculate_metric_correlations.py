@@ -13,10 +13,8 @@ PRIMARY_SUMMARY = (
     / "barumerli_pge_fisher_hu_raw_ml_final"
     / "full_evaluation_summary.csv"
 )
-FSP_AE_SUMMARY = ROOT / "results" / "__not_used__" / "full_evaluation_summary.csv"
 FSP_AE_LSD_16K = ROOT / "results" / "barumerli_pge_fisher_hu_raw_ml_final" / "fsp_ae_lsd_20_16k.csv"
 AUDIT_CSV = ROOT / "results" / "audits" / "metric_correlations.csv"
-TABLE_TEX = ROOT / "tables" / "evaluation" / "metric_correlation_table.tex"
 TABLE_TEX_IEEE = ROOT / "tables" / "evaluation" / "metric_correlation_table_ieee.tex"
 
 METHODS = {
@@ -81,24 +79,21 @@ def read_rows() -> list[dict[str, str]]:
                 fsp_lsd[key] = row["LSDdB_20_16k"]
 
     rows: list[dict[str, str]] = []
-    for path in [PRIMARY_SUMMARY, FSP_AE_SUMMARY]:
-        if not path.is_file():
-            continue
-        with path.open(newline="", encoding="utf-8-sig") as handle:
-            for row in csv.DictReader(handle):
-                if row["status"] != "completed" or row["method"] not in METHODS:
-                    continue
-                if row["method"] == "FSP_AE":
-                    key = (row["subjectId"], row["retainedDirections"])
-                    if key in fsp_lsd:
-                        row["LSDdB"] = fsp_lsd[key]
-                try:
-                    float(row["meanAIRM"])
-                    for metric_key, _label in METRICS:
-                        float(row[metric_key])
-                except (KeyError, TypeError, ValueError):
-                    continue
-                rows.append(row)
+    with PRIMARY_SUMMARY.open(newline="", encoding="utf-8-sig") as handle:
+        for row in csv.DictReader(handle):
+            if row["status"] != "completed" or row["method"] not in METHODS:
+                continue
+            if row["method"] == "FSP_AE":
+                key = (row["subjectId"], row["retainedDirections"])
+                if key in fsp_lsd:
+                    row["LSDdB"] = fsp_lsd[key]
+            try:
+                float(row["meanAIRM"])
+                for metric_key, _label in METRICS:
+                    float(row[metric_key])
+            except (KeyError, TypeError, ValueError):
+                continue
+            rows.append(row)
     return rows
 
 
@@ -162,27 +157,6 @@ def compute_statistics(rows: list[dict[str, str]]) -> list[dict[str, object]]:
 
 
 def write_tables(statistics: list[dict[str, object]]) -> None:
-    lines = [
-        "\\begin{table}[ht!]",
-        "\\centering",
-        "\\caption{Association between mean AIRM and established evaluation metrics. Correlations are reported over the 23 completed method--retention means; the final column gives a 95\\% subject-cluster bootstrap interval for the corresponding row-wise Spearman coefficient, preserving all within-subject repeated measurements.}",
-        "\\label{tab:metric_correlations}",
-        "\\small",
-        "\\begin{tabular}{lrrr}",
-        "\\toprule",
-        "Metric & Pearson $r$ & Spearman $\\rho$ & Row-wise $\\rho$ 95\\% CI \\\\",
-        "\\midrule",
-    ]
-    for row in statistics:
-        lines.append(
-            f"{row['label']} & {row['methodRetentionPearson']:.2f} "
-            f"& {row['methodRetentionSpearman']:.2f} "
-            f"& [{row['rowSpearmanSubjectBootstrapCiLower']:.2f}, "
-            f"{row['rowSpearmanSubjectBootstrapCiUpper']:.2f}] \\\\"
-        )
-    lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{table}", ""])
-    TABLE_TEX.write_text("\n".join(lines), encoding="utf-8")
-
     ieee_lines = [
         "\\begin{table}[!t]",
         "\\centering",
@@ -259,7 +233,6 @@ def main() -> None:
     write_audit_csv(statistics)
     write_tables(statistics)
     print(f"Wrote {AUDIT_CSV}")
-    print(f"Wrote {TABLE_TEX}")
     print(f"Wrote {TABLE_TEX_IEEE}")
 
 
