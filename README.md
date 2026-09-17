@@ -10,20 +10,22 @@ and the scripts that generate its figures and tables.
 - `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `.pdf`: manuscript source and compiled paper.
 - `run_hrtf_fisher_rao_evaluation.m`: signal, Bayesian localisation, and Fisher-tensor evaluation.
 - `run_hrtf_fisher_rao_hu_protocol.m`: 41-subject SONICOM protocol wrapper.
-- `scripts/`: figure, table, correlation, and audit scripts.
-- `results/`: manuscript summary data and compact audit outputs.
+- `scripts/`: figure, table, correlation, and analysis scripts.
+- `results/`: manuscript summary data and derived results.
 - `figures/evaluation/` and `tables/evaluation/`: manuscript figures and TeX table fragments.
 - `ml_comparator_research/`: SONICOM adapters for RANF and FSP-AE. The upstream repositories are installed separately.
-- `listening_test/`: source and protocol documentation for the lateral 2AFC study. Stimulus WAVs and participant responses are excluded from Git.
-
-The large source datasets, reconstructed SOFA files, per-direction MATLAB
-tensors, trained model checkpoints, third-party toolboxes, and cloned upstream
-repositories are not included.
+- `ss/`: supplementary software, including the archived lateral 2AFC study implementation. No listening-test results are reported in the manuscript.
 
 ## Regenerate the manuscript figures
 
-The committed summary CSV files are sufficient to rebuild the figures and TeX
-tables used by the paper:
+Install the Python dependencies from the repository root:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+The included summary CSV files and median tensor data support the following
+figure and table builds:
 
 ```powershell
 python scripts/plot_median_crb_ellipses.py
@@ -54,7 +56,6 @@ LSD values use the common LAP/SAM band up to 20 kHz.
 
 ## Data access
 
-Researchers seeking to reproduce or extend the work are welcome to contact the
-authors. Generated outputs, including reconstructed SOFA files, can be shared
-where the licences and dataset terms permit. Third-party datasets, toolboxes,
-and model repositories should be obtained from their original sources.
+Questions about the evaluation protocol can be directed to the authors.
+Third-party datasets, toolboxes, and model repositories should be obtained from
+their original sources.

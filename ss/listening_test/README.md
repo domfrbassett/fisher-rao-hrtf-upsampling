@@ -1,7 +1,8 @@
 # HRTF Lateral Discrimination Study
 
-This folder contains the listening experiment used to test whether HRTF
-upsampling preserves local lateral discrimination. On each trial, the listener
+This folder archives the supplementary implementation of a listening experiment
+designed to test whether HRTF upsampling preserves local lateral discrimination.
+No results from this study are reported in the accompanying manuscript. On each trial, the listener
 hears two binaural white-noise sounds and selects A or B according to which
 appeared farther to the left.
 

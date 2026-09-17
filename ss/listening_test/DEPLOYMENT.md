@@ -15,7 +15,7 @@ stored in D1; closing a browser does not remove submitted responses.
 
 ## Deploy
 
-Run from `listening_test`:
+Run from `ss/listening_test`:
 
 ```powershell
 npm.cmd run check

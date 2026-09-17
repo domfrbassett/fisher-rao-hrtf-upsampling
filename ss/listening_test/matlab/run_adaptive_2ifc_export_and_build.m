@@ -11,7 +11,7 @@ function audit = run_adaptive_2ifc_export_and_build(projectRoot, skipExport)
         skipExport (1, 1) logical = false
     end
 
-    studyRoot = fullfile(projectRoot, "listening_test");
+    studyRoot = fullfile(projectRoot, "ss", "listening_test");
     publicRoot = fullfile(studyRoot, "public");
     matlabRoot = fullfile(studyRoot, "matlab");
 
@@ -25,7 +25,7 @@ function audit = run_adaptive_2ifc_export_and_build(projectRoot, skipExport)
     % The evaluator is a script and deliberately starts with clear; rebuild
     % wrapper paths after it returns.
     projectRoot = string(fileparts(fileparts(fileparts(mfilename("fullpath")))));
-    studyRoot = fullfile(projectRoot, "listening_test");
+    studyRoot = fullfile(projectRoot, "ss", "listening_test");
     publicRoot = fullfile(studyRoot, "public");
     matlabRoot = fullfile(studyRoot, "matlab");
     addpath(char(matlabRoot), "-begin");

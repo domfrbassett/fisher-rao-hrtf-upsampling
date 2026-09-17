@@ -24,10 +24,10 @@ FSP_AE_raw_N019_hrir_field.mat
 Generated files are written under:
 
 ```text
-listening_test/matlab/adaptive_condition_plan.csv
-listening_test/audit/
-listening_test/public/config/
-listening_test/public/audio/adaptive/
+ss/listening_test/matlab/adaptive_condition_plan.csv
+ss/listening_test/audit/
+ss/listening_test/public/config/
+ss/listening_test/public/audio/adaptive/
 ```
 
 ## Export fields and rebuild

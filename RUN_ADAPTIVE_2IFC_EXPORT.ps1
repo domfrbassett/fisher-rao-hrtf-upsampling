@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProtocolJson = Join-Path $ProjectRoot "ml_comparator_research\comparator_protocol\outputs\hu_hrtfformer_protocol.json"
-$Runner = Join-Path $ProjectRoot "listening_test\matlab\run_adaptive_2ifc_export_and_build.m"
+$Runner = Join-Path $ProjectRoot "ss\listening_test\matlab\run_adaptive_2ifc_export_and_build.m"
 
 if (-not (Test-Path $ProtocolJson)) {
     throw "Comparator protocol JSON not found: $ProtocolJson"
@@ -34,7 +34,7 @@ if ($SonicomRoot.Trim().Length -gt 0) {
 }
 
 try {
-    $MatlabPath = Join-Path $ProjectRoot "listening_test\matlab"
+    $MatlabPath = Join-Path $ProjectRoot "ss\listening_test\matlab"
     $SkipExportValue = if ($SkipExport) { "true" } else { "false" }
     & $MatlabCommand -batch "addpath('$MatlabPath','-begin'); run_adaptive_2ifc_export_and_build('$ProjectRoot', $SkipExportValue)"
     if ($LASTEXITCODE -ne 0) {

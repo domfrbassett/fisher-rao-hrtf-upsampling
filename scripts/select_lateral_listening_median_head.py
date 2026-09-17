@@ -11,7 +11,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 SUMMARY_CSV = ROOT / "results" / "barumerli_pge_fisher_hu_raw_ml_final" / "full_evaluation_summary.csv"
 FSP_AE_LSD_CSV = ROOT / "results" / "barumerli_pge_fisher_hu_raw_ml_final" / "fsp_ae_lsd_20_16k.csv"
-OUT_DIR = ROOT / "listening_test" / "audit"
+OUT_DIR = ROOT / "ss" / "listening_test" / "audit"
 
 METHODS = ["SUpDEq_MCA", "RANF", "FSP_AE"]
 RETENTIONS = [5, 19]

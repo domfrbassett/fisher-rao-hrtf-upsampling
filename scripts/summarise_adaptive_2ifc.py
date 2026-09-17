@@ -8,7 +8,7 @@ from statistics import median
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_RESPONSES = ROOT / "listening_test" / "server" / "data" / "responses.ndjson"
+DEFAULT_RESPONSES = ROOT / "ss" / "listening_test" / "server" / "data" / "responses.ndjson"
 DEFAULT_VERSION = "adaptive-v9-lateral-psi-dprime1-raw-ml"
 
 

@@ -11,7 +11,7 @@ function import_ranf_raw_sofas_for_behavioural_fields(projectRoot, rawExperiment
     end
 
     ensure_sofa_paths(projectRoot);
-    fieldsRoot = fullfile(projectRoot, "listening_test", "fields");
+    fieldsRoot = fullfile(projectRoot, "ss", "listening_test", "fields");
 
     for iRetention = 1:numel(retentions)
         retention = retentions(iRetention);
