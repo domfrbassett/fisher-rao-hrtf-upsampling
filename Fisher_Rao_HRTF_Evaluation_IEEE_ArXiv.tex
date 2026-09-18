@@ -11,6 +11,8 @@
 \usepackage{placeins}
 \usepackage{xurl}
 \usepackage{balance}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 \usepackage[hidelinks]{hyperref}
 
 \hypersetup{
@@ -99,6 +101,43 @@ displacements. The analysis therefore retains the full tensor.
 The evaluation compares the Fisher tensors of measured and reconstructed HRTFs together with signal-domain errors and Bayesian observer simulations. Fisher information measures how the localisation cues vary between neighbouring directions, so reconstructions with similar spectral error can produce different Fisher tensors.
 
 Reference and reconstructed Fisher tensors are compared using the affine-invariant Riemannian metric (AIRM) on symmetric positive-definite matrices. The resulting discrepancy measures differences in the size, shape, and orientation of local discrimination ellipses. It tests whether an upsampling method preserves the local discriminability represented by the reference Fisher tensor field.
+
+Figure~\ref{fig:evaluation_pipeline} summarises the proposed evaluation sequence.
+\begin{figure}[t]
+    \centering
+    \begin{tikzpicture}[
+        node distance=3.5mm,
+        stage/.style={
+            draw=black!65,
+            fill=black!3,
+            rounded corners=1pt,
+            line width=0.45pt,
+            align=center,
+            inner xsep=2.5pt,
+            inner ysep=3pt,
+            font=\scriptsize,
+            text width=0.255\columnwidth
+        },
+        flow/.style={
+            -{Latex[length=1.4mm,width=1mm]},
+            line width=0.5pt,
+            draw=black!75
+        }
+    ]
+        \node[stage] (hrtf) {\textbf{HRTF fields}\\Measured $H$ and reconstructed $\widehat H$};
+        \node[stage, right=of hrtf] (cues) {\textbf{Auditory cues}\\PGE, ILD, and transformed ITD};
+        \node[stage, right=of cues] (gradients) {\textbf{Spatial gradients}\\Tangent Jacobians $\mathbf J$ and $\widehat{\mathbf J}$};
+        \node[stage, below=5mm of gradients] (tensors) {\textbf{Fisher tensors}\\$\mathbf g=\mathbf J^T\boldsymbol\Sigma^{-1}\mathbf J$ and $\widehat{\mathbf g}$};
+        \node[stage, left=of tensors] (comparison) {\textbf{Tensor comparison}\\AIRM $d_{\mathrm R}(\mathbf g,\widehat{\mathbf g})$};
+
+        \draw[flow] (hrtf) -- (cues);
+        \draw[flow] (cues) -- (gradients);
+        \draw[flow] (gradients) -- (tensors);
+        \draw[flow] (tensors) -- (comparison);
+    \end{tikzpicture}
+    \caption{Evaluation pipeline for comparing measured and reconstructed HRTF fields through their local auditory-cue sensitivity.}
+    \label{fig:evaluation_pipeline}
+\end{figure}
 
 \section{Cue Feature Extraction}
 Let the source direction be represented by a unit Cartesian vector
