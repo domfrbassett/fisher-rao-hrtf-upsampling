@@ -1,20 +1,18 @@
 # Fisher Information for HRTF Upsampling Evaluation
 
 This repository accompanies the paper *On Using Fisher Information to Evaluate
-the Preservation of Spatial Discriminability in HRTF Upsampling*. It contains
-the IEEE manuscript, the evaluation code, the summary data used in the paper,
-and the scripts that generate its figures and tables.
+the Preservation of Spatial Discriminability in HRTF Upsampling*.
 
 ## Repository contents
 
 - `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `.pdf`: manuscript source and compiled paper.
 - `run_hrtf_fisher_rao_evaluation.m`: signal, Bayesian localisation, and Fisher-tensor evaluation.
-- `run_hrtf_fisher_rao_hu_protocol.m`: 41-subject SONICOM protocol wrapper.
+- `run_hrtf_fisher_rao_hu_protocol.m`: 41-subject SONICOM protocol wrapper, based on HRTFformer by Hu et al. (2026).
 - `scripts/`: figure, table, correlation, and analysis scripts.
-- `results/`: manuscript summary data and derived results.
-- `figures/evaluation/` and `tables/evaluation/`: manuscript figures and TeX table fragments.
+- `results/`: manuscript data and results.
+- `figures/evaluation/` and `tables/evaluation/`: manuscript figures and TeX tables.
 - `ml_comparator_research/`: SONICOM adapters for RANF and FSP-AE. The upstream repositories are installed separately.
-- `ss/`: supplementary software, including the archived lateral 2AFC study implementation. No listening-test results are reported in the manuscript.
+- `ss/`: supplementary software, including the archived lateral 2AFC study implementation.
 
 ## Regenerate the manuscript figures
 
