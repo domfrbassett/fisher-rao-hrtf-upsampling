@@ -16,7 +16,7 @@
 \usepackage[hidelinks]{hyperref}
 
 \hypersetup{
-  pdftitle={On Using Fisher Information to Evaluate the Preservation of Spatial Discriminability in HRTF Upsampling},
+  pdftitle={A Fisher Information-based Evaluation of the Preservation of Spatial Discriminability in HRTF Upsampling},
   pdfauthor={Dominic Bassett, Matthew Cheshire, and Samuel Smith},
   pdfsubject={Evaluation of spatial discriminability preservation in HRTF upsampling},
   pdfkeywords={Fisher information, HRTF, spatial audio, spatial discriminability, upsampling}
@@ -28,16 +28,16 @@
 \setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
 \setlength{\belowcaptionskip}{0pt}
 
-\title{On Using Fisher Information to Evaluate the Preservation of Spatial Discriminability in HRTF Upsampling}
-\author{Dominic Bassett, Matthew Cheshire, and Samuel Smith%
-\thanks{Dominic Bassett, Matthew Cheshire, and Samuel Smith are with Birmingham City University, Birmingham, U.K.}}
+\title{Evaluating Spatial Discriminability Preservation in HRTF Upsampling Using Fisher Information}
+\author{Dominic Bassett%
+\thanks{Dominic Bassett is associated with Birmingham City University, Birmingham, U.K.}}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-HRTF upsampling is typically evaluated using signal-domain reconstruction errors and localisation-model summaries, neither of which directly measures the preservation of local spatial discriminability. We introduce an evaluation method based on Fisher information on the sphere of source directions. Spatial gradients of positive spectral-gradient, interaural level-difference, and interaural time-difference features form a bivariate Fisher information tensor, whose inverse gives the Cramér--Rao bound on the covariance of an unbiased local angular estimator. Reference and reconstructed tensors are compared using the affine-invariant Riemannian metric, measuring changes in the scale, anisotropy, and orientation of local spatial discrimination ellipses. We evaluate the method on a 41-subject SONICOM cohort under four sparse-grid retention conditions. The comparison includes SUpDEq-based interpolation, RANF, and FSP-AE, and reports Fisher-tensor error alongside log-spectral distance and Bayesian localisation metrics. RANF achieves the lowest log-spectral distance across all conditions and the lowest tensor error at the three sparsest grids; FSP-AE maintains stable tensor errors despite higher log-spectral distance. Projected \(\bm{d'=1}\) thresholds express selected tensors in angular units and show the expected increase in lateral threshold from frontal to lateral directions. The proposed evaluation therefore quantifies reconstruction errors in predicted local spatial discriminability that are not measured by signal fidelity or localisation summaries alone.
+HRTF upsampling is typically evaluated using signal-domain reconstruction metrics and, more recently, statistical localisation models, but neither directly assesses the preservation of local spatial discriminability. We introduce an evaluation method based on Fisher information over the sphere of source directions. Spatial gradients of positive spectral gradient, interaural level difference, and interaural time difference features define a bivariate Fisher information tensor, whose inverse gives the Cramér–Rao lower bound on the covariance of any unbiased local angular estimator. Reference and reconstructed tensors are compared using the affine-invariant Riemannian metric, which captures changes in the scale, anisotropy, and orientation of local spatial discrimination ellipses. We evaluate the method on a 41-subject SONICOM cohort under four sparse-grid retention conditions. We compare SUpDEq-based interpolation, RANF, and FSP-AE, reporting Fisher-tensor error alongside log-spectral distance (LSD) and Bayesian localisation metrics. RANF achieves the lowest LSD across all conditions and the lowest tensor error at the three sparsest grids, while FSP-AE maintains stable tensor errors despite higher LSD. Projected \(\bm{d'=1}\) thresholds express selected tensors in angular units and show the expected increase in lateral threshold from frontal to lateral directions. The proposed evaluation therefore quantifies reconstruction errors in predicted local spatial discriminability that are not captured by signal-fidelity or localisation metrics alone.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -47,17 +47,17 @@ spatial audio, spatial discriminability, upsampling.
 
 \section{Introduction and Background}
 
-Head-related transfer functions (HRTFs) encode the direction-dependent filtering imposed by the listener's head, torso, and pinnae. Dense individual HRTF measurements are expensive to obtain, so spatial upsampling may be used to reconstruct a dense directional field from a sparse set of measured directions. Upsampling methods are usually evaluated with log-spectral distance (LSD), interaural level-difference error, interaural time-difference error, and localisation-model summaries. These quantities measure signal fidelity or predicted pointing performance, but they do not directly ask whether the reconstructed field preserves local cue-based discriminability predicted by an auditory observer model. The relevant object for evaluation is therefore not only the HRTF at a single direction, but the local variation of localisation cues over the sphere.
+Head-related transfer functions (HRTFs) describe the direction-dependent filtering introduced by a listener’s head, torso, and pinnae. Because dense individual HRTF measurements are costly to obtain, spatial upsampling is used to reconstruct a dense directional field from a sparse set of measured directions. Upsampling methods are usually evaluated using log-spectral distance (LSD), interaural level-difference error, interaural time-difference error, and localisation-model metrics. These measures quantify signal fidelity or predicted localisation performance, but do not directly assess whether the reconstructed field preserves local cue-based discriminability predicted by an auditory observer model. The relevant object of evaluation is therefore not only the HRTF at a given direction, but also the local variation of localisation cues over the sphere.
 
-Spatial discrimination studies often report lateral and polar acuity separately, as minimum audible angles or response variability along azimuthal and elevational dimensions. Starch \cite{Starch1905} combined horizontal and vertical discrimination measurements into ``auditory discrimination ellipses'', recognising that spatial acuity varies with both source direction and the direction of displacement. The horizontal and vertical axes of each ellipse were set by thresholds measured separately in those planes; thresholds along intermediate directions were then inferred from the ellipse. The measurements also used a 100-Hz electric-fork stimulus, without the cross-band spectral structure normally involved in broadband elevation discrimination.
+Spatial discrimination studies often report lateral and polar acuity separately, using minimum audible angles or response variability along azimuthal and elevational dimensions. Starch \cite{Starch1905} combined horizontal and vertical discrimination measurements into ``auditory discrimination ellipses'', recognising that spatial acuity depends on both source direction and displacement direction. The ellipse axes were defined by thresholds measured separately in the horizontal and vertical planes, with intermediate-direction thresholds inferred from the resulting ellipse. The measurements used a 100-Hz electric-fork stimulus and therefore lacked the cross-band spectral structure needed for elevation discrimination.
 
-Modern localisation data support the need for a coupled bivariate account. Carlile et al. \cite{Carlile1997} modelled localisation error distributions using Fisher or Kent distributions. In the pooled data, error distributions at 50 of 76 target locations (66\%) were classified as Kent distributions. Their major axes often departed from the azimuth/elevation axes and, rather than following the cones of confusion expected under an orthogonal cue-processing account, showed co-latitude alignment laterally and posteriorly and radial alignment near the frontal midline.
+Modern localisation data further suggest that spatial error cannot generally be treated as independent along azimuthal and elevational dimensions. Carlile et al. \cite{Carlile1997} modelled localisation error distributions using Fisher or Kent distributions. In the pooled data, error distributions at 50 of 76 target locations (66\%) were classified as Kent distributions. Their major axes often departed from the azimuth/elevation axes and, rather than following the cones of confusion expected under orthogonal cue processing, showed co-latitude alignment at lateral and posterior locations and radial alignment near the frontal midline.
 
-The Bayesian model of Barumerli et al. \cite{Barumerli2023} is calibrated against aggregate lateral, polar, and quadrant errors and provides realistic point estimates. Its final response stage, however, applies isotropic von Mises--Fisher scatter around each maximum a posteriori (MAP) estimate. This conditional scatter cannot itself represent direction-dependent response anisotropy; in Fig.~\ref{fig:kent_map_scatter}, the simulated response covariances are correspondingly close to radial symmetry. The total response covariance also contains variation in the noisy MAP estimates and should not be interpreted as a direct measure of local sensory precision. For HRTF upsampling, this distinction matters because a reconstruction may preserve average spectral content while altering the scale, anisotropy, or orientation of local discrimination. A tensorial analysis of sensory cue gradients can assess these changes alongside localisation-model evaluation.
+The 2023 Bayesian model of Barumerli et al. \cite{Barumerli2023}, used here as a localisation-model comparator, was calibrated against aggregate lateral, polar, and quadrant errors. A subsequent extension introduced likelihood-based fitting to complete response distributions and validated recovery of a reduced parameter set \cite{Barumerli2026}. Both formulations predict localisation responses rather than the local sensory sensitivity considered here. The model's final response stage applies isotropic von Mises--Fisher scatter around each maximum a posteriori (MAP) estimate. This conditional scatter cannot represent direction-dependent anisotropy in localisation uncertainty; accordingly, the simulated response covariances in Fig.~\ref{fig:kent_map_scatter} are approximately isotropic. The total response covariance additionally reflects variability in the noisy MAP estimates and therefore cannot be interpreted directly as local sensory precision. This distinction is important for HRTF upsampling, since a reconstruction may preserve average spectral content while altering the scale, anisotropy, or orientation of local spatial discriminability. A tensorial analysis of sensory cue gradients provides a complementary means of quantifying these changes alongside localisation-model metrics.
 
-Fisher information gives such a local tensor: it quantifies how rapidly the expected auditory cues change with small displacements in source direction. Within auditory neuroscience, Fisher information has been used to relate binaural cue statistics and neural response properties. Harper and McAlpine \cite{Harper2004} analysed the population coding of interaural time differences (ITDs) in the mammalian brainstem and showed that neural tuning distributions can be organised to maximise Fisher information over naturally occurring cue ranges. Pav\~ao et al. \cite{Pavao2020} extended this analysis to human listeners and reported that the spatial distribution of Fisher information derived from HRTF statistics correlates with measured free-field ITD discrimination thresholds.
+Fisher information provides such a local tensor, quantifying the sensitivity of expected auditory cues to small changes in source direction. In auditory neuroscience, it has been used to relate binaural cue statistics to neural coding. Harper and McAlpine \cite{Harper2004} analysed the population coding of interaural time differences (ITDs) in the mammalian brainstem and showed that neural tuning distributions can be organised to maximise Fisher information over naturally occurring cue ranges. Pav~ao et al. \cite{Pavao2020} extended this analysis to human listeners, reporting that the spatial distribution of Fisher information derived from HRTF statistics correlates with measured free-field ITD discrimination thresholds.
 
-This paper uses Fisher information to evaluate HRTF reconstruction and spatial upsampling. Let the sound-source direction be \(\mathbf{r}\in\mathbb{S}^2\), and let \(\boldsymbol{\xi}\in\mathbb{R}^{2}\) denote local angular coordinates in an orthonormal tangent basis at \(\mathbf{r}\). Within the assumed cue-noise observer, the Fisher information matrix quantifies local stimulus discriminability on these coordinates. For any unbiased local estimator \(\hat{\boldsymbol{\xi}}\), provided that the Fisher information matrix is nonsingular, the Cram\'er--Rao bound (CRB) states
+This paper evaluates HRTF spatial upsampling by comparing Fisher information tensors derived from reference and reconstructed auditory cue fields. Let the sound-source direction be \(\mathbf{r}\in\mathbb{S}^2\), and let \(\boldsymbol{\xi}\in\mathbb{R}^{2}\) denote local angular coordinates in an orthonormal tangent basis at \(\mathbf{r}\). Within the assumed cue-noise observer, the Fisher information matrix quantifies local stimulus discriminability on these coordinates. For any unbiased local estimator \(\hat{\boldsymbol{\xi}}\), provided that the Fisher information matrix is nonsingular, the Cram\'er--Rao bound (CRB) states
 \begin{equation}
 \operatorname{Cov}(\hat{\boldsymbol{\xi}}) \succeq \mathbf{g}(\mathbf{r})^{-1},
 \end{equation}
@@ -271,7 +271,7 @@ It is fitted with the same \(N_{\max}\), basis convention, and fitting grid:
 =
 \widehat{\mathbf{B}}^T\mathbf{Y}(\mathbf{r}).
 \end{equation}
-The main evaluation uses \(N_{\max}=6\) for both fields. Using the same SH order makes their gradients comparable at the same spatial resolution. This cue-field fit is separate from the SH interpolation used by some reconstruction methods.
+The main evaluation uses \(N_{\max}=6\) for both fields. Using the same SH order makes their gradients comparable at the same spatial resolution.
 
 \subsection{Continuous Spatial Derivatives}
 
@@ -324,7 +324,7 @@ For the Fisher analysis, cue observations are modelled locally as Gaussian with 
 \end{equation}
 where \(\mathbf{I}_{N_S}\) is the \(N_S\times N_S\) identity matrix. The off-diagonal entries of \(\mathbf{g}(\mathbf{r})\) are the precision-weighted inner products between tangent cue gradients.
 
-The standard deviations set the relative cue weights. The analysis uses \(\sigma_{\mathrm{mon}}=1.25\,\mathrm{dB}\), \(\sigma_{\mathrm{ILD}}=1\,\mathrm{dB}\), and \(\sigma_{\mathrm{ITD}}=0.569\) on the transformed \(T(\tau)\) scale. The ITD value is the Reijniers et al. discrimination-derived standard deviation on the transformed JND coordinate \cite{Reijniers2014}. The PGE and ILD values are the medians of the listener-specific gradient-profile fits reported by Barumerli et al. \cite{Barumerli2023}. They are effective observer-model weights calibrated using separate localisation responses, rather than direct physiological measurements of internal noise, and are not fitted to the behavioural thresholds discussed below. The Bayesian evaluation additionally includes the observer prior, decision rule, and response stage.
+The standard deviations set the relative cue weights. The analysis uses \(\sigma_{\mathrm{mon}}=1.25\,\mathrm{dB}\), \(\sigma_{\mathrm{ILD}}=1\,\mathrm{dB}\), and \(\sigma_{\mathrm{ITD}}=0.569\) on the transformed \(T(\tau)\) scale. The ITD value is the Reijniers et al. discrimination-derived standard deviation on the transformed JND coordinate \cite{Reijniers2014}. The PGE and ILD values are the medians of the listener-specific gradient-profile fits reported by Barumerli et al. \cite{Barumerli2023}. They are effective observer-model weights calibrated using separate localisation responses, rather than direct physiological measurements of internal noise, and are not fitted to discrimination thresholds. The Bayesian evaluation additionally includes the observer prior, decision rule, and response stage.
 
 For the diagonal Gaussian covariance defined by these standard deviations, the Fisher information matrix on the two-dimensional tangent space is
 \begin{equation}
@@ -441,7 +441,6 @@ with reconstruction error
 -\widehat{\operatorname{ILD}}_{\mathrm{HRTF}}(\mathbf{r}_n)
 \right|.
 \end{equation}
-This signal-domain quantity differs from the broadband DTF power-ratio ILD cue used in the Fisher tensor. One measures error in the binaural level field; the other contributes its spatial derivatives to the Fisher matrix.
 
 \subsection{Fisher-Tensor AIRM Discrepancy}
 The primary tensor metric is the mean AIRM discrepancy in \eqref{eq:mean_airm}. It compares the scale, anisotropy, and orientation of the Fisher tensors formed from the spatial cue gradients.
@@ -491,7 +490,7 @@ The reported metrics are
 =
 \left(1-\frac{|\mathcal{A}|}{|\mathcal{P}|}\right)\times100.
 \end{equation}
-The implementation uses AMT \path{barumerli2023} with DTF feature extraction, maximum a posteriori estimation, and \(R=300\) simulated repetitions per target direction. Its parameters are \(\sigma_{\mathrm{ITD}}=0.569\), \(\sigma_{\mathrm{ILD}}=1\), \(\sigma_{\mathrm{spectral}}=4\), \(\sigma_{\mathrm{prior}}=11.5\), and \(\sigma_{\mathrm{motor}}=14\). The DTF representation and spectral-noise value follow the public HRTFformer localisation evaluation \cite{Hu2026HRTFformer}; the other parameters follow the AMT 1.6 \path{barumerli2023} defaults. The DTF spectral-noise parameter is distinct from the PGE weight \(\sigma_{\mathrm{mon}}=1.25\) used to construct the Fisher tensors. The resulting metrics summarise simulated pointing after application of the complete observer model.
+The implementation uses AMT \path{barumerli2023} with DTF feature extraction, maximum a posteriori estimation, and \(R=300\) simulated repetitions per target direction. Its parameters are \(\sigma_{\mathrm{ITD}}=0.569\), \(\sigma_{\mathrm{ILD}}=1\), \(\sigma_{\mathrm{spectral}}=4\), \(\sigma_{\mathrm{prior}}=11.5\), and \(\sigma_{\mathrm{motor}}=14\). The DTF representation and spectral-noise value follow the public HRTFformer localisation evaluation \cite{Hu2026HRTFformer}; the other parameters follow the AMT 1.6 \path{barumerli2023} defaults. The measured reference template is constructed using the corresponding legacy AMT interpolation, which omits directions below the lowest measured elevation; the later full-sphere extension addresses this limitation \cite{Barumerli2026}. The same reference template is held fixed for the dense self-reference and every reconstruction. The resulting relative metrics therefore compare all conditions under a common observer template.
 
 \section{Evaluation Procedure}
 \subsection{Data and Spatial Conditions}\label{sec:data}
@@ -560,7 +559,7 @@ RANF has the lowest LSD throughout the evaluated retention conditions. FSP-AE ha
     \label{fig:lsd_subject_boxplot}
 \end{figure}
 
-Figure~\ref{fig:bayesian_subject_distributions} reports subject-wise distributions for lateral RMS, local polar RMS, and quadrant error. Lateral RMS measures error in lateral angle, including both bias and response variability. Local polar RMS measures polar error within the correct quadrant; quadrant error counts larger polar confusions.
+Figure~\ref{fig:bayesian_subject_distributions} reports subject-wise distributions for lateral RMS, local polar RMS, and quadrant error.
 
 \begin{figure}[!t]
     \centering
@@ -612,6 +611,9 @@ S. Carlile, P. Leong, and S. Hyams, ``The nature and distribution of errors in s
 
 \bibitem{Barumerli2023}
 R. Barumerli, P. Majdak, M. Geronazzo, D. Meijer, F. Avanzini, and R. Baumgartner, ``A Bayesian model for human directional localization of broadband static sound sources,'' \textit{Acta Acust.}, vol. 7, Art. no. 12, 2023, doi:10.1051/aacus/2023006.
+
+\bibitem{Barumerli2026}
+R. Barumerli, F. Brinkmann, E. Zanoni, A. Hoyer, L. Picinali, and M. Geronazzo, ``Statistical validation and full-sphere extension of a Bayesian model for human static sound localisation,'' arXiv:2606.24367, 2026, doi:10.48550/arXiv.2606.24367.
 
 \bibitem{Harper2004}
 N. S. Harper and D. McAlpine, ``Optimal neural population coding of an auditory spatial cue,'' \textit{Nature}, vol. 430, no. 7000, pp. 682--686, 2004, doi:10.1038/nature02768.
@@ -677,26 +679,26 @@ D. W. Grantham, B. W. Y. Hornsby, and E. A. Erpenbeck, ``Auditory spatial resolu
 \end{thebibliography}
 \endgroup
 
-\section*{Author Biographies}
+\section*{Author Biography}
 
 \begin{center}
-\includegraphics[width=\columnwidth]{figures/authors_cheshire_bassett_smith.jpg}\\[-0.2em]
-{\footnotesize\itshape Left to right: Matthew Cheshire, Dominic Bassett, and Samuel Smith.}
+\includegraphics[width=\columnwidth]{figures/IMG_20250221_124059_862-EDIT.jpg}\\[-0.2em]
+%{\footnotesize\itshape Left to right: Matthew Cheshire, Dominic Bassett, and Samuel Smith.}
 \end{center}
 
 \begingroup
 \setlength{\parskip}{0pt}
 
-\noindent\textbf{Dominic Bassett} received the B.Sc. (Hons.) degree in Sound Engineering and Production with first-class honours from Birmingham City University, Birmingham, U.K., in 2026. His dissertation investigated statistical methods for modelling spatial acuity in head-related transfer function upsampling. He is a Graduate Acoustic Consultant with Cundall. His interests include spatial audio signal processing, room-acoustic simulation, and perceptual modelling. He has contributed to open-source acoustical modelling software, including work on binaural auralisation tools.
+\noindent\textbf{Dominic Bassett} received the B.Sc. (Hons.) degree in Sound Engineering and Production with first-class honours from Birmingham City University, Birmingham, U.K., in 2026. His dissertation investigated spatial acuity and the resolution of directional information in spatial audio. He is a Graduate Acoustic Consultant with Cundall. His research interests include spatial audio signal processing, room-acoustic simulation, and perceptual modelling. He has also contributed to open-source acoustic modelling software, including binaural auralisation tools.
 
-\vspace{0.4em}
-\newpage
+%\vspace{0.4em}
+%\newpage
 
-\noindent\textbf{Matthew Cheshire} is a Lecturer in Audio Engineering in the College of Computing at Birmingham City University, Birmingham, U.K., where he leads modules in audio embedded systems, music information retrieval, and live sound reinforcement. He received the B.Sc. (Hons.) degree in Sound Engineering and Production from Birmingham City University in 2013 and the Ph.D. degree from the same institution in 2023. His doctoral research investigated timbral analysis and recording-parameter transformations of snare drums. His research interests include microphone comparison, drum recording, perceptual evaluation, and signal processing for recording applications. He has authored papers presented at Audio Engineering Society conventions and published in the \textit{Journal of the Audio Engineering Society}. He received the AES Saul Walker Award in 2019 and the AES Educational Foundation John Eargle Award in 2020 and 2021.
+%\noindent\textbf{Matthew Cheshire} is a Lecturer in Audio Engineering in the College of Computing at Birmingham City University, Birmingham, U.K., where he leads modules in audio embedded systems, music information retrieval, and live sound reinforcement. He received the B.Sc. (Hons.) degree in Sound Engineering and Production from Birmingham City University in 2013 and the Ph.D. degree from the same institution in 2023. His doctoral research investigated timbral analysis and recording-parameter transformations of snare drums. His research interests include microphone comparison, drum recording, perceptual evaluation, and signal processing for recording applications. He has authored papers presented at Audio Engineering Society conventions and published in the \textit{Journal of the Audio Engineering Society}. He received the AES Saul Walker Award in 2019 and the AES Educational Foundation John Eargle Award in 2020 and 2021.
 
-\vspace{0.4em}
+%\vspace{0.4em}
 
-\noindent\textbf{Samuel Smith} is a Senior Lecturer in the College of Computing at Birmingham City University, Birmingham, U.K., where he leads modules in digital signal processing, digital audio effects, and audio and video processing. He received the B.Sc. (Hons.) degree in Sound Engineering and Production from Birmingham City University in 2012 and the Ph.D. degree from the same institution in 2021. His doctoral research developed a statistical approach for three-dimensional surface detection. His research interests include audio signal processing, music information retrieval, medical image processing, and computer vision. He has authored papers in \textit{IEEE Signal Processing Letters} and \textit{Transactions of the International Society for Music Information Retrieval}, and has co-authored work presented at Audio Engineering Society conferences.
+%\noindent\textbf{Samuel Smith} is a Senior Lecturer in the College of Computing at Birmingham City University, Birmingham, U.K., where he leads modules in digital signal processing, digital audio effects, and audio and video processing. He received the B.Sc. (Hons.) degree in Sound Engineering and Production from Birmingham City University in 2012 and the Ph.D. degree from the same institution in 2021. His doctoral research developed a statistical approach for three-dimensional surface detection. His research interests include audio signal processing, music information retrieval, medical image processing, and computer vision. He has authored papers in \textit{IEEE Signal Processing Letters} and \textit{Transactions of the International Society for Music Information Retrieval}, and has co-authored work presented at Audio Engineering Society conferences.
 \endgroup
 
 \end{document}
