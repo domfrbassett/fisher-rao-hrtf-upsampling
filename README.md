@@ -1,7 +1,7 @@
-# Fisher Information for HRTF Upsampling Evaluation
+# Evaluating Spatial Discriminability Preservation in HRTF Upsampling Using Fisher Information
 
-This repository accompanies the paper *On Using Fisher Information to Evaluate
-the Preservation of Spatial Discriminability in HRTF Upsampling*.
+This repository accompanies the paper *Evaluating Spatial Discriminability Preservation in
+HRTF Upsampling Using Fisher Information*.
 
 ## Repository contents
 
