@@ -1,0 +1,15 @@
+name = "fisher-rao-hrtf-2ifc"
+main = "worker/sites-worker.js"
+compatibility_date = "2026-08-10"
+workers_dev = true
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fisher-rao-hrtf-2ifc-db"
+database_id = "15596b52-f04b-4a49-8d69-6636191cbdc2"
+

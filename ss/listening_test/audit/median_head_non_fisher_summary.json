@@ -1,0 +1,44 @@
+{
+  "selectedSubjectId": 33,
+  "selectionRule": "Minimum mean absolute robust deviation from cohort median across non-Fisher metric-condition columns.",
+  "includedMethods": [
+    "SUpDEq_MCA",
+    "RANF",
+    "FSP_AE"
+  ],
+  "includedRetainedDirections": [
+    5,
+    19
+  ],
+  "includedMetrics": [
+    "LSDdB",
+    "ILDErrorDb",
+    "relativeLateralRMSErrorDeg",
+    "relativeLocalPolarRMSErrorDeg",
+    "relativeQuadrantErrorPercentagePoints"
+  ],
+  "excludedMetrics": [
+    "meanAIRM",
+    "medianAIRM",
+    "stdAIRM",
+    "iqrAIRM",
+    "meanDeterminantError",
+    "meanAnisotropyError",
+    "meanOrientationErrorDeg",
+    "orientationValidCount",
+    "orientationValidProportion",
+    "predictedDPrimeReference",
+    "predictedDPrimeField",
+    "predictedDeltaDPrime",
+    "localAIRM"
+  ],
+  "fspAeLsdConvention": "FSP_AE LSD uses the 20 Hz to 16 kHz supported-band correction where available.",
+  "selectedRankRow": {
+    "subjectId": 33,
+    "nonFisherMeanAbsRobustDeviation": 0.26911126967983817,
+    "nonFisherMedianAbsRobustDeviation": 0.18130297086669533,
+    "nonFisherMaxAbsRobustDeviation": 0.917839800802492,
+    "metricConditionCount": 30,
+    "rank": 1
+  }
+}

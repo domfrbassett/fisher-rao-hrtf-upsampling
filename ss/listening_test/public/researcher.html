@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2IFC Stimulus Preparation Audit</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell researcher-shell">
+    <header class="study-header">
+      <div>
+        <p class="eyebrow">Researcher Preparation</p>
+        <h1>Stimulus Audit</h1>
+      </div>
+      <a class="text-link" href="/">Participant interface</a>
+    </header>
+
+    <section class="panel">
+      <h2>Declared Study Set</h2>
+      <p id="design-summary">Loading the study manifest.</p>
+      <div id="design-cards" class="plan-grid"></div>
+      <h3>Fields to render</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Role</th>
+              <th>Retention conditions</th>
+            </tr>
+          </thead>
+          <tbody id="method-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel spaced-panel">
+      <h2>Manifest Availability</h2>
+      <p id="manifest-status">Checking whether rendered stimuli are present.</p>
+      <div id="manifest-results"></div>
+    </section>
+
+    <section class="panel spaced-panel">
+      <h2>Preparation sequence</h2>
+      <ol class="preparation-list">
+        <li>Run the MATLAB evaluator once with <code>FISHER_RAO_BEHAVIOURAL_EXPORT_ONLY=true</code> to create fresh HRIR fields and metric tensors.</li>
+        <li>Run <code>RUN_ADAPTIVE_2IFC_EXPORT.ps1</code> from the project root to generate the adaptive condition plan, WAV bank and manifest.</li>
+        <li>Return here to verify that the study manifest and every referenced WAV file are present.</li>
+        <li>Open the participant interface from the root study URL.</li>
+      </ol>
+    </section>
+  </main>
+  <script src="researcher.js?v=20260810-study"></script>
+</body>
+</html>

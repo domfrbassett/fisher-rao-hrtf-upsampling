@@ -1,0 +1,67 @@
+﻿# MATLAB / LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.xdv
+__tmp*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local datasets and third-party dependencies
+dependencies/
+reference_papers/
+tmp/
+_fsp_ae_inspect/
+_hrtfformer_inspect/
+
+# Heavy/generated evaluation outputs
+results/**/metric_tensors/
+results/**/*.mat
+results/**/*.sofa
+results/**/*.wav
+results/**/*.pickle
+results/**/*.pkl
+results/**/*.pt
+results/**/*.pth
+results/**/*.npz
+!results/audits/seeded_41_median_fisher_and_covariance.npz
+
+# ML comparator cloned repositories and work products
+ml_comparator_research/**/repos/
+ml_comparator_research/**/work/
+ml_comparator_research/**/__pycache__/
+ml_comparator_research/**/outputs/
+
+# Listening-test generated assets and response data
+ss/listening_test/node_modules/
+ss/listening_test/dist/
+ss/listening_test/.wrangler/
+ss/listening_test/.openai/
+ss/listening_test/fields/
+ss/listening_test/dense_render_validation/
+ss/listening_test/public/audio/**/*.wav
+ss/listening_test/public/audio/**/*.flac
+ss/listening_test/public/audio/**/*.mp3
+ss/listening_test/public/audio/**/*.ogg
+ss/listening_test/server/data/*
+!ss/listening_test/server/data/.gitkeep
+ss/listening_test/server/data_backup_*/
+ss/listening_test/exports/*
+!ss/listening_test/exports/.gitkeep
+ss/listening_test/runinfo.txt
+ss/listening_test/matlab/adaptive_condition_plan.csv
+ss/listening_test/**/*.mat
+ss/listening_test/**/*.sofa
