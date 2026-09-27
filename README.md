@@ -5,7 +5,7 @@ HRTF Upsampling Using Fisher Information*.
 
 ## Repository contents
 
-- `Fisher_Rao_HRTF_Evaluation_IEEE_ArXiv.tex` and `.pdf`: manuscript source and compiled paper.
+- `Fisher_Rao_HRTF_Evaluation.tex` and `.pdf`: manuscript source and compiled paper.
 - `run_hrtf_fisher_rao_evaluation.m`: signal, Bayesian localisation, and Fisher-tensor evaluation.
 - `run_hrtf_fisher_rao_hu_protocol.m`: 41-subject SONICOM protocol wrapper, based on HRTFformer by Hu et al. (2026).
 - `scripts/`: figure, table, correlation, and analysis scripts.
