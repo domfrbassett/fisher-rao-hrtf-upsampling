@@ -382,6 +382,8 @@ Further limitations follow from the construction of the tensor. Fisher informati
 The tensor also suggests a training objective: a penalty on the spatial Jacobians of the cues relative to the reference. Unlike smoothness losses such as that of HRTFformer~\cite{Hu2026HRTFformer}, it would penalise the loss of Fisher information that FSP-AE shows at 71--96\% of directions despite stable spectral error.
 
 In conclusion, local cue sensitivity provides an evaluation criterion for HRTF reconstruction that is distinct from spectral fidelity and predicted localisation error. Fisher information makes this criterion quantitative, interpretable as discrimination thresholds, and comparable across methods and sparsity levels. The released code (\url{https://github.com/domfrbassett/fisher-rao-hrtf-upsampling}) computes the tensors, their per-cue-family components, and all reported summaries from the reconstructed HRIRs, so that the criterion can be applied to other upsampling methods.
+
+\noindent\textit{Acknowledgment:} Claude (Anthropic) assisted with code refactoring and text editing; the author is responsible for all content.
 \FloatBarrier
 \begingroup
 \footnotesize
