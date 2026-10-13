@@ -1,0 +1,6 @@
+numpy
+pandas
+matplotlib
+scipy>=1.15
+h5py
+Pillow

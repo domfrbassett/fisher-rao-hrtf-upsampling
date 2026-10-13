@@ -1,0 +1,27 @@
+\begin{table}[!t]
+\centering
+\caption{Cohort-median Fisher-predicted \(d'=1\) thresholds in degrees. Coordinate pairs give (azimuth, elevation); H and V are horizontal (azimuthal) and vertical (elevational) displacements, and D is the oblique displacement at \(60^\circ\) from horizontal. Err.\ is the mean absolute log ratio to the dense reference over the six thresholds, expressed as a percentage change.}
+\label{tab:local_threshold_plausibility}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llrrrrrrr}
+\toprule
+Method & $N$ & H\,(0,0) & H\,(45,0) & H\,(90,0) & V\,(0,0) & V\,(0,45) & D\,(0,0) & Err. \\
+\midrule
+Measured & -- & 1.69 & 3.06 & 6.83 & 4.47 & 5.99 & 2.73 & -- \\
+Measured, \(\sigma_{\mathrm{mon}}=2.85\) & -- & 1.70 & 3.34 & 10.97 & 9.17 & 11.64 & 3.06 & -- \\
+SUpDEq-SH & 19 & 2.06 & 2.93 & 5.50 & 4.13 & 3.94 & 3.03 & 19\% \\
+SUpDEq-MCA & 19 & 1.86 & 2.56 & 5.75 & 4.25 & 5.15 & 3.04 & 13\% \\
+SUpDEq-Natural-MCA & 19 & 1.88 & 2.86 & 6.31 & 6.06 & 7.10 & 3.48 & 18\% \\
+SUpDEq-Bary-MCA & 19 & 1.83 & 3.05 & 5.88 & 6.25 & 7.17 & 3.40 & 18\% \\
+RANF & 19 & 1.67 & 2.94 & 6.64 & 4.34 & 6.35 & 2.74 & 3\% \\
+FSP-AE & 19 & 1.79 & 3.42 & 8.34 & 4.83 & 7.16 & 2.88 & 12\% \\
+SUpDEq-SH & 5 & 1.96 & 2.88 & 5.44 & 5.47 & 5.01 & 3.29 & 18\% \\
+SUpDEq-MCA & 5 & 1.65 & 2.61 & 5.55 & 6.82 & 6.08 & 2.99 & 16\% \\
+RANF & 5 & 1.76 & 3.05 & 7.72 & 4.28 & 7.05 & 2.86 & 7\% \\
+FSP-AE & 5 & 1.71 & 3.35 & 10.24 & 6.50 & 9.89 & 3.14 & 29\% \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

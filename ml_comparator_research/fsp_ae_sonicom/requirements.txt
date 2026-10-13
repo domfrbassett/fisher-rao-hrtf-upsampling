@@ -1,0 +1,8 @@
+# Install torch and torchaudio from the matching CUDA wheel index first.
+numpy>=2.0,<2.3
+scipy>=1.13,<1.16
+netCDF4>=1.7,<2
+python-sofa==0.2.0
+PyYAML>=6,<7
+tensorboard>=2.19,<3
+tqdm>=4.67,<5

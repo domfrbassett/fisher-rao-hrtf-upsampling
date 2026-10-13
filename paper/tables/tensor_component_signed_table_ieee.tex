@@ -1,0 +1,21 @@
+\begin{table*}[!t]
+\centering
+\caption{Cohort-mean Fisher-tensor component errors: \(\mathcal E_{\mathrm{det}}\) (det), \(\mathcal E_{\mathrm{anis}}\) (anis), and \(\mathcal E_{\mathrm{orient}}\) (orient., degrees). Signed: mean signed log ratio \(\log\det\widehat{\mathbf g}_\eta-\log\det\mathbf g_\eta\) over directions and subjects; negative values indicate lost discriminability (ellipse area scales by \(e^{-x/2}\)), positive values spurious added cue variation. In parentheses: percentage of directions at which the reconstruction carries more information than the reference. N/A: not applicable.}
+\label{tab:tensor_component_means}
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{lrrrrrrrrrrrrrrrr}
+\toprule
+ & \multicolumn{4}{c}{\(N=100\)} & \multicolumn{4}{c}{\(N=19\)} & \multicolumn{4}{c}{\(N=5\)} & \multicolumn{4}{c}{\(N=3\)} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13} \cmidrule(lr){14-17}
+Method & det & anis & orient. & signed & det & anis & orient. & signed & det & anis & orient. & signed & det & anis & orient. & signed \\
+\midrule
+SUpDEq-SH & 0.70 & 0.56 & 19 & +0.50 (72\%) & 0.68 & 0.67 & 20 & +0.46 (73\%) & 0.87 & 0.67 & 16 & \(-\)0.52 (31\%) & 7.05 & 5.72 & 13 & \(-\)7.05 (0\%) \\
+SUpDEq-MCA & 0.90 & 0.57 & 19 & +0.80 (81\%) & 0.93 & 0.68 & 22 & +0.83 (85\%) & 0.96 & 0.81 & 17 & \(-\)0.66 (27\%) & 8.45 & 6.17 & 13 & \(-\)8.45 (0\%) \\
+SUpDEq-Natural-MCA & 0.33 & 0.32 & 7 & \(-\)0.14 (36\%) & 0.70 & 0.55 & 11 & \(-\)0.49 (29\%) & \multicolumn{4}{c}{N/A} & \multicolumn{4}{c}{N/A} \\
+SUpDEq-Bary-MCA & 0.38 & 0.39 & 9 & \(-\)0.18 (33\%) & 0.68 & 0.55 & 14 & \(-\)0.35 (36\%) & \multicolumn{4}{c}{N/A} & \multicolumn{4}{c}{N/A} \\
+RANF & 0.35 & 0.33 & 7 & \(-\)0.05 (50\%) & 0.39 & 0.37 & 9 & +0.01 (53\%) & 0.48 & 0.44 & 11 & \(-\)0.05 (48\%) & 0.50 & 0.45 & 11 & \(-\)0.12 (43\%) \\
+FSP-AE & 0.37 & 0.32 & 7 & \(-\)0.24 (29\%) & 0.60 & 0.44 & 8 & \(-\)0.54 (14\%) & 0.86 & 0.58 & 10 & \(-\)0.83 (6\%) & 0.95 & 0.63 & 10 & \(-\)0.93 (4\%) \\
+\bottomrule
+\end{tabular}
+\end{table*}

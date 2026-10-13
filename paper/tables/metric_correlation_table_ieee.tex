@@ -1,0 +1,18 @@
+\begin{table}[!t]
+\centering
+\caption{Rank association between mean AIRM and the other metrics. Across conditions: Spearman correlation of the method--retention means. Row-wise: Spearman correlation over all subject--method--retention rows, with 95\% subject-bootstrap intervals. Within condition: Kendall's \(\tau\) between the method rankings given by AIRM and by the metric, computed separately for each subject and retention level and averaged, with 95\% subject-bootstrap intervals; it excludes agreement that arises only because all metrics worsen with sparsity.}
+\label{tab:metric_correlations}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrr}
+\toprule
+Metric & Across cond. & Row-wise & Within cond. \(\tau\) \\
+\midrule
+LSD & 0.92 & 0.87 [0.86, 0.89] & 0.73 [0.71, 0.74] \\
+ILD & 0.77 & 0.74 [0.72, 0.76] & 0.56 [0.53, 0.58] \\
+Lateral RMS & 0.95 & 0.82 [0.80, 0.84] & 0.65 [0.62, 0.67] \\
+Local polar RMS & 0.83 & 0.71 [0.67, 0.75] & 0.56 [0.53, 0.59] \\
+Quadrant error & 0.75 & 0.58 [0.53, 0.62] & 0.39 [0.35, 0.44] \\
+\bottomrule
+\end{tabular}
+\end{table}

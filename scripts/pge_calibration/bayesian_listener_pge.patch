@@ -1,0 +1,521 @@
+PGE extension of bayesian_listener (Barumerli et al., 2026)
+
+Apply to https://github.com/robaru/bayesian_listener at commit 7961faa
+(v0.2.0) with:  git apply bayesian_listener_pge.patch
+
+Implements the positive spectral-gradient convention ('barumerli2023pge',
+a stub upstream) with gradients taken at the measured directions before
+spatial interpolation, passes the convention through the two-stage fit,
+avoids an overflow of I0(kappa) in the stage-1 von Mises likelihood, and adds
+tests. As a modification of bayesian_listener, this patch is distributed
+under the EUPL-1.2, the licence of the original work.
+
+diff --git a/bayesian_listener/auditory_representation.py b/bayesian_listener/auditory_representation.py
+index d2d828b..fdba7cb 100644
+--- a/bayesian_listener/auditory_representation.py
++++ b/bayesian_listener/auditory_representation.py
+@@ -178,29 +178,79 @@ class Barumerli2023(_AuditoryRepresentation):
+ 
+ @dataclass
+ class Barumerli2023pge(_AuditoryRepresentation):
+-    """ITD + ILD + spectral-gradient representation — stub.
+-
+-    .. warning::
+-
+-       This convention is registered for future use (issue #22) but is not
+-       implemented.  Instantiating it raises :class:`NotImplementedError`,
+-       and :meth:`sigma_matrix` does the same.
++    r"""ITD + ILD + positive spectral-gradient representation.
++
++    The monaural features are the positive differences between adjacent
++    gammatone-band log amplitudes, matching the ``GP`` convention in
++    :footcite:t:`barumerli2023`.  For input amplitudes :math:`x_i`, the
++    gradient feature is :math:`\max(x_{i+1} - x_i, 0)`.  Consequently an
++    input with ``n_freqs`` bands produces ``n_freqs - 1`` gradient bands per
++    ear.  Their centre frequencies are the geometric means of adjacent input
++    centre frequencies.
+     """
+ 
+     convention: str = 'barumerli2023pge'
+     coords: pf.Coordinates = None
+     itd: np.ndarray = None
+     ild: np.ndarray = None
++    spectral_cues: np.ndarray = None
+     spectral_gradient: np.ndarray = None
+     freqs: np.ndarray = None
+ 
++    halfwave_rectifier = True
++    cache_key = 'barumerli2023pge-feature-first-v1'
++
+     def __post_init__(self):
+-        """Not implemented."""
+-        raise NotImplementedError('barumerli2023pge is not yet implemented.')
++        """Compute PGE from amplitudes, or accept an already interpolated PGE."""
++        if self.spectral_cues is not None:
++            self._input_freqs = np.asarray(self.freqs).copy()
++            gradient = np.diff(self.spectral_cues, axis=1)
++            self.spectral_gradient = np.maximum(gradient, 0.0)
++            self.freqs = np.sqrt(self._input_freqs[:-1] * self._input_freqs[1:])
++        elif self.spectral_gradient is not None:
++            # Spatial interpolation is applied to the feature itself, as in
++            # Sec. 2.5 of Barumerli et al. (2026).  Do not rectify again:
++            # SH interpolation can overshoot slightly, and the Fisher code
++            # likewise differentiates the continuous fitted PGE field.
++            self.freqs = np.asarray(self.freqs).copy()
++        else:
++            raise ValueError(
++                'Either spectral_cues or spectral_gradient must be provided.'
++            )
++        self.features = np.hstack([
++            self.itd,
++            self.ild,
++            self.spectral_gradient[:, :, 0],
++            self.spectral_gradient[:, :, 1],
++        ])
++
++    def __getitem__(self, idx):
++        """Return a new positive-gradient representation with selected rows."""
++        if isinstance(idx, (int, np.integer)):
++            idx = [idx]
++        if self.spectral_cues is not None:
++            return Barumerli2023pge(
++                coords=self.coords[idx],
++                itd=self.itd[idx],
++                ild=self.ild[idx],
++                spectral_cues=self.spectral_cues[idx],
++                freqs=self._input_freqs,
++            )
++        return Barumerli2023pge(
++            coords=self.coords[idx],
++            itd=self.itd[idx],
++            ild=self.ild[idx],
++            spectral_gradient=self.spectral_gradient[idx],
++            freqs=self.freqs,
++        )
+ 
+     def sigma_matrix(self, parameters: dict) -> np.ndarray:
+-        """Not implemented."""
+-        raise NotImplementedError('barumerli2023pge is not yet implemented.')
++        """Return diagonal noise covariance for ITD, ILD, and PGE cues."""
++        return np.diag(np.hstack([
++            parameters['sigma_itd']**2,
++            parameters['sigma_ild']**2,
++            np.repeat(parameters['sigma_spectral']**2, self.freqs.shape[0] * 2),
++        ]))
+ 
+ 
+ CONVENTIONS = {
+diff --git a/bayesian_listener/bayesian_listener.py b/bayesian_listener/bayesian_listener.py
+index 8f23138..25f2710 100644
+--- a/bayesian_listener/bayesian_listener.py
++++ b/bayesian_listener/bayesian_listener.py
+@@ -7,7 +7,7 @@ from scipy.special import logsumexp
+ from bayesian_listener import utils
+ from bayesian_listener import resample
+ from bayesian_listener.auditory_representation import (
+-    _AuditoryRepresentation, CONVENTIONS)
++    _AuditoryRepresentation, Barumerli2023pge, CONVENTIONS)
+ from pathlib import Path
+ 
+ class BayesianListener:
+@@ -280,23 +280,27 @@ class BayesianListener:
+         Barumerli2023
+             Same subclass as ``ar``, resampled onto the target grid.
+         """
+-        cues_list = [
+-            ar.itd,
+-            ar.ild,
+-            ar.spectral_cues[:, :, 0],
+-            ar.spectral_cues[:, :, 1],
+-        ]
++        spectral = (
++            ar.spectral_gradient
++            if isinstance(ar, Barumerli2023pge)
++            else ar.spectral_cues
++        )
++        cues_list = [ar.itd, ar.ild, spectral[:, :, 0], spectral[:, :, 1]]
+         resampled_cues, coords_new = resample.resample(
+             cues_list, ar.coords, interpolation_grid, method=interpolation)
+ 
+-        return type(ar)(
+-            coords=coords_new,
+-            itd=resampled_cues[0],
+-            ild=resampled_cues[1],
+-            spectral_cues=np.stack([resampled_cues[2],
+-                                    resampled_cues[3]], axis=-1),
+-            freqs=ar.freqs,
++        spectral_resampled = np.stack(
++            [resampled_cues[2], resampled_cues[3]], axis=-1
+         )
++        common = {
++            'coords': coords_new,
++            'itd': resampled_cues[0],
++            'ild': resampled_cues[1],
++            'freqs': ar.freqs,
++        }
++        if isinstance(ar, Barumerli2023pge):
++            return type(ar)(spectral_gradient=spectral_resampled, **common)
++        return type(ar)(spectral_cues=spectral_resampled, **common)
+ 
+     def compute_target(self, convention='Barumerli2023', spectral_range=None,
+                        halfwave_rectifier=None, reference='frontal',
+@@ -320,8 +324,8 @@ class BayesianListener:
+         convention : str, default='Barumerli2023'
+             Auditory representation to use.  Must be a key in
+             ``bayesian_listener.auditory_representation.CONVENTIONS``.
+-            Currently ``'Barumerli2023'`` (ITD + ILD + spectral amplitudes) is
+-            the only fully implemented convention.
++            ``'Barumerli2023'`` uses spectral amplitudes and
++            ``'barumerli2023pge'`` uses positive spectral gradients.
+         spectral_range : list of float or None, default=None
+             ``[low_Hz, high_Hz]`` frequency limits of the gammatone filterbank
+             used for the monaural cues.  ``None`` selects ``[700.0, 18000.0]``.
+@@ -378,8 +382,11 @@ class BayesianListener:
+         if halfwave_rectifier is None:
+             halfwave_rectifier = CONVENTIONS[convention].halfwave_rectifier
+ 
++        cache_convention = getattr(
++            CONVENTIONS[convention], 'cache_key', convention
++        )
+         feature_key = utils.feature_cache_key(
+-            convention, spectral_range, halfwave_rectifier, reference)
++            cache_convention, spectral_range, halfwave_rectifier, reference)
+ 
+         if use_cache and not force_recompute:
+             target = utils.cache_load_target(
+diff --git a/bayesian_listener/fitting.py b/bayesian_listener/fitting.py
+index 4ff766c..fffbf46 100644
+--- a/bayesian_listener/fitting.py
++++ b/bayesian_listener/fitting.py
+@@ -18,7 +18,7 @@ from pathlib import Path
+ import time
+ from itertools import product
+ from pybads import BADS
+-from scipy.special import i0, i1
++from scipy.special import i0, i0e, i1
+ from scipy.optimize import minimize_scalar
+ from scipy.optimize import brentq
+ from bayesian_listener import BayesianListener
+@@ -78,7 +78,11 @@ def von_mises_loglik_mc(kappa, resp_lat, est_lat_mc):
+     >>> bool(np.isfinite(nll))
+     True
+     """
+-    log_C = -np.log(2 * np.pi * i0(kappa))
++    # log(I0(kappa)) = log(I0e(kappa)) + |kappa|.  The scaled Bessel
++    # function avoids overflow for the documented search range up to 1000;
++    # direct i0(kappa) becomes inf near kappa=710 and used to create NaNs.
++    log_i0 = np.log(i0e(kappa)) + np.abs(kappa)
++    log_C = -np.log(2 * np.pi) - log_i0
+     lat_diff = resp_lat[:, None] - est_lat_mc
+     log_pdfs = log_C + kappa * np.cos(lat_diff)
+     max_log_pdfs = np.max(log_pdfs, axis=1, keepdims=True)
+@@ -495,7 +499,8 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+                  interpolation_method, subject_id=None,
+                  num_repetitions=200, num_repetitions_motor=200,
+                  num_grid_points=1, fix_sigma_ild=True,
+-                 motor_estimation_seed=42, verbose=True):
++                 motor_estimation_seed=42, verbose=True,
++                 convention='Barumerli2023'):
+     r"""Run the full two-stage fit recommended in :footcite:t:`barumerli2026`.
+ 
+     1. Estimate :math:`\hat{\kappa}_m` (Eq. 12) via :func:`estimate_motor_noise`.
+@@ -533,6 +538,9 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+         Seed forwarded to :func:`estimate_motor_noise`.
+     verbose : bool, default=True
+         Print stage-by-stage progress.
++    convention : {'Barumerli2023', 'barumerli2023pge'}, default='Barumerli2023'
++        Auditory representation used in both fitting stages.  The latter uses
++        the positive spectral-gradient features of :footcite:t:`barumerli2023`.
+ 
+     Returns
+     -------
+@@ -557,6 +565,7 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+     try:
+         # Load HRTF and create model
+         model = BayesianListener(sofa_path)
++        model.compute_target(convention=convention)
+         model.compute_template(interpolation=interpolation_method)
+ 
+         # Step 1: Estimate motor noise from ITD+ILD
+@@ -575,8 +584,8 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+ 
+         kappa_motor_est = motor_result['kappa_motor']
+         if verbose:
+-            print(f"  Motor noise: κ_motor = {kappa_motor_est:.2f} "
+-                  f"(σ = {motor_result['sigma_motor']:.2f}°, "
++            print(f"  Motor noise: kappa_motor = {kappa_motor_est:.2f} "
++                  f"(sigma = {motor_result['sigma_motor']:.2f} deg, "
+                   f"n = {motor_result['n_trials']}) ({t_motor:.1f}s)")
+ 
+         # Step 2: Fit remaining parameters with motor noise fixed
+@@ -608,6 +617,7 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+             num_repetitions=num_repetitions,
+             num_grid_points=num_grid_points,
+             verbose=False,  # We handle verbose output here
++            convention=convention,
+         )
+ 
+         # Add motor estimation info to results
+@@ -615,6 +625,7 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+         result['kappa_motor'] = motor_result['kappa_motor']
+         result['n_trials_motor'] = motor_result['n_trials']
+         result['time_motor'] = t_motor
++        result['convention'] = convention
+ 
+         t_total = time.time() - t_start_total
+         result['time_total'] = t_total
+@@ -622,10 +633,10 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+         if verbose:
+             print(f"  Final NLL: {result['nll']:.2f}")
+             print(f"  Total time: {t_total:.1f}s")
+-            print(f"  σ_ILD: {result['sigma_ild']:.2f}, "
+-                  f"σ_spectral: {result['sigma_spectral']:.2f}, "
+-                  f"σ_motor: {result['sigma_motor']:.2f}°, "
+-                  f"σ_prior: {result['sigma_prior']:.2f}")
++            print(f"  sigma_ILD: {result['sigma_ild']:.2f}, "
++                  f"sigma_spectral: {result['sigma_spectral']:.2f}, "
++                  f"sigma_motor: {result['sigma_motor']:.2f} deg, "
++                  f"sigma_prior: {result['sigma_prior']:.2f}")
+ 
+         return result
+ 
+@@ -634,6 +645,7 @@ def fit_listener(sofa_path, obs_tbl, targets_coords,
+         return {
+             'subject': label,
+             'method': interpolation_method,
++            'convention': convention,
+             'success': False,
+             'error': str(e),
+         }
+@@ -643,7 +655,7 @@ def fit_listener_partial(sofa_path, obs_tbl, targets_coords,
+                          interpolation_method, params_to_fit,
+                          fixed_params=None, subject_id=None,
+                          num_repetitions=200, num_grid_points=1,
+-                         verbose=True):
++                         verbose=True, convention='Barumerli2023'):
+     r"""Fit an arbitrary subset of model parameters via BADS.
+ 
+     Parameters
+@@ -682,6 +694,8 @@ def fit_listener_partial(sofa_path, obs_tbl, targets_coords,
+         Initialisation grid size per parameter dimension.
+     verbose : bool, default=True
+         Print progress messages.
++    convention : {'Barumerli2023', 'barumerli2023pge'}, default='Barumerli2023'
++        Auditory representation used for target and template cues.
+ 
+     Returns
+     -------
+@@ -730,6 +744,7 @@ def fit_listener_partial(sofa_path, obs_tbl, targets_coords,
+ 
+         # Load HRTF and create model
+         model = BayesianListener(sofa_path)
++        model.compute_target(convention=convention)
+         model.compute_template(interpolation=interpolation_method)
+ 
+         # Extract features as AuditoryRepresentation subset
+@@ -809,7 +824,14 @@ def fit_listener_partial(sofa_path, obs_tbl, targets_coords,
+         grid_arrays = []
+         for p in params_to_fit:
+             if p == 'sigma_spectral':
+-                grid_arrays.append(np.log(np.linspace(10, 15, n)))
++                # Spectral amplitudes and positive gradients have different
++                # numerical scales.  The respective centres reflect the
++                # published amplitude MLEs (~10 dB) and the 2023 GP fits
++                # (median 1.25 dB), and are initialisation values only.
++                if convention == 'barumerli2023pge':
++                    grid_arrays.append(np.log(np.linspace(1.25, 5.0, n)))
++                else:
++                    grid_arrays.append(np.log(np.linspace(10, 15, n)))
+             elif p == 'sigma_prior':
+                 # Grid in tau space: sigma in [40, 50] -> tau in [1/50^2, 1/40^2]
+                 tau_grid_lo = 1.0 / 50.0**2
+@@ -861,6 +883,7 @@ def fit_listener_partial(sofa_path, obs_tbl, targets_coords,
+         return {
+             'subject': label,
+             'method': interpolation_method,
++            'convention': convention,
+             'params_fitted': params_to_fit,
+             'sigma_itd': final_params['sigma_itd'],
+             'sigma_ild': final_params['sigma_ild'],
+@@ -882,6 +905,7 @@ def fit_listener_partial(sofa_path, obs_tbl, targets_coords,
+         return {
+             'subject': label,
+             'method': interpolation_method,
++            'convention': convention,
+             'params_fitted': params_to_fit,
+             'success': False,
+             'error': str(e),
+diff --git a/bayesian_listener/utils.py b/bayesian_listener/utils.py
+index fb60389..2fb7b45 100644
+--- a/bayesian_listener/utils.py
++++ b/bayesian_listener/utils.py
+@@ -908,14 +908,14 @@ def clear_cache(sofa_file=None):
+     cache_index_file = cache_dir / 'cache_index.csv'
+ 
+     if not cache_dir.exists():
+-        print("✓ No cache to clear")
++        print("OK: No cache to clear")
+         return
+ 
+     if sofa_file is None:
+         # Clear everything
+         import shutil
+         shutil.rmtree(cache_dir)
+-        print(f"✓ All cache cleared: {cache_dir}")
++        print(f"OK: All cache cleared: {cache_dir}")
+     else:
+         # Clear specific file
+         sofa_name = Path(sofa_file).name
+@@ -929,16 +929,16 @@ def clear_cache(sofa_file=None):
+                     pkl_path = cache_dir / pkl_file
+                     if pkl_path.exists():
+                         pkl_path.unlink()
+-                        print(f"✓ Removed: {pkl_file}")
++                        print(f"OK: Removed: {pkl_file}")
+ 
+                 # Update index
+                 cache_df = cache_df[cache_df['sofa_name'] != sofa_name]
+                 cache_df.to_csv(cache_index_file, index=False)
+-                print(f"✓ Cache cleared for: {sofa_name}")
++                print(f"OK: Cache cleared for: {sofa_name}")
+             else:
+-                print(f"✓ No cache found for: {sofa_name}")
++                print(f"OK: No cache found for: {sofa_name}")
+         else:
+-            print("✓ No cache index found")
++            print("OK: No cache index found")
+ 
+ # --- private cache helpers ---
+ 
+@@ -1092,7 +1092,7 @@ def cache_save_target(cache_dir, sofa_file, feature_key, target):
+     _, pkl_path, data, _ = _cache_entry(cache_dir, sofa_file)
+     data.setdefault('targets', {})[feature_key] = target
+     _write_pkl(pkl_path, data)
+-    print(f"✓ Target '{feature_key}' cached: {pkl_path.name}")
++    print(f"OK: Target '{feature_key}' cached: {pkl_path.name}")
+ 
+ 
+ def cache_save_template(cache_dir, sofa_file, feature_key, interpolation, template):
+@@ -1100,7 +1100,7 @@ def cache_save_template(cache_dir, sofa_file, feature_key, interpolation, templa
+     _, pkl_path, data, _ = _cache_entry(cache_dir, sofa_file)
+     data.setdefault('templates', {}).setdefault(feature_key, {})[interpolation] = template
+     _write_pkl(pkl_path, data)
+-    print(f"✓ Template '{feature_key}/{interpolation}' cached: {pkl_path.name}")
++    print(f"OK: Template '{feature_key}/{interpolation}' cached: {pkl_path.name}")
+ 
+ 
+ # -----------------------------------
+diff --git a/tests/test_bayesian_listener.py b/tests/test_bayesian_listener.py
+index 049337d..228d147 100644
+--- a/tests/test_bayesian_listener.py
++++ b/tests/test_bayesian_listener.py
+@@ -300,11 +300,42 @@ def test_sigma_motor_roundtrip():
+         am.parameters['kappa_motor'], original_kappa, rtol=1e-4)
+ 
+ 
+-def test_barumerli2023pge_not_implemented():
+-    """Instantiating Barumerli2023pge raises NotImplementedError."""
+-    with pytest.raises(NotImplementedError):
+-        Barumerli2023pge(coords=None, itd=None, ild=None,
+-                         spectral_gradient=None, freqs=None)
++def test_barumerli2023pge_features_and_covariance():
++    """PGE keeps positive adjacent-band slopes and matches covariance size."""
++    spectral = np.array([[[1.0, 4.0], [3.0, 2.0], [2.0, 7.0]]])
++    pge = Barumerli2023pge(
++        coords=None,
++        itd=np.array([[0.1]]),
++        ild=np.array([[2.0]]),
++        spectral_cues=spectral,
++        freqs=np.array([1000.0, 2000.0, 8000.0]),
++    )
++
++    np.testing.assert_allclose(pge.spectral_gradient,
++                               [[[2.0, 0.0], [0.0, 5.0]]])
++    np.testing.assert_allclose(pge.freqs, [np.sqrt(2e6), 4000.0])
++    assert pge.features.shape == (1, 6)
++    sigma = pge.sigma_matrix({
++        'sigma_itd': 0.569,
++        'sigma_ild': 1.0,
++        'sigma_spectral': 1.25,
++    })
++    assert sigma.shape == (6, 6)
++
++
++def test_compute_template_positive_gradient_convention():
++    """PGE target and interpolated template retain compatible feature sizes."""
++    am = BayesianListener(get_sofa_file())
++    am.compute_target(convention='barumerli2023pge', use_cache=False)
++    am.compute_template(interpolation='SH', use_cache=False)
++
++    assert isinstance(am.target, Barumerli2023pge)
++    assert isinstance(am.template, Barumerli2023pge)
++    assert am.target.features.shape[1] == am.template.features.shape[1]
++    assert am.target.freqs.size == am.target._input_freqs.size - 1
++    assert am.target.spectral_cues is not None
++    assert am.template.spectral_cues is None
++    assert am.template.spectral_gradient.shape[1] == am.target.freqs.size
+ 
+ 
+ def test_gammatone_minimum_ir_length_numerical_error():
+diff --git a/tests/test_fitting.py b/tests/test_fitting.py
+index 28fd800..e57c3ac 100644
+--- a/tests/test_fitting.py
++++ b/tests/test_fitting.py
+@@ -6,6 +6,7 @@ from unittest.mock import patch, MagicMock
+ import pyfar as pf
+ from bayesian_listener.fitting import (
+     fit_listener, negloglik, sigma_to_kappa, kappa_to_sigma, allcomb,
++    von_mises_loglik_mc,
+ )
+ 
+ from tests.test_bayesian_listener import get_sofa_file
+@@ -35,6 +36,13 @@ def test_allcomb():
+     np.testing.assert_array_equal(result, expected)
+ 
+ 
++def test_lateral_von_mises_likelihood_is_finite_at_upper_kappa_bound():
++    """The stage-1 likelihood must not overflow at kappa=1000."""
++    responses = np.array([0.0, 0.1, -0.1])
++    estimates = responses[:, None] + np.array([[-0.01, 0.0, 0.01]])
++    assert np.isfinite(von_mises_loglik_mc(1000.0, responses, estimates))
++
++
+ # ---------------------------------------------------------------------------
+ # Fixture: model + synthetic data for negloglik / fit_listener tests
+ # ---------------------------------------------------------------------------
+@@ -172,6 +180,35 @@ def test_fit_listener_smoke(fitting_data):
+     mock_bads_instance.optimize.assert_called_once()
+ 
+ 
++def test_fit_listener_positive_gradient_smoke(fitting_data):
++    """The two-stage wrapper can fit the positive-gradient convention."""
++    sofa_path, obs_tbl, targets_coords = fitting_data
++
++    mock_bads_instance = MagicMock()
++    mock_bads_instance.optimize.return_value = {
++        'x': np.log([2.0, 1.0 / 30.0**2]),
++        'fval': 4321.0,
++    }
++
++    with patch('bayesian_listener.fitting.BADS', return_value=mock_bads_instance):
++        result = fit_listener(
++            sofa_path=sofa_path,
++            obs_tbl=obs_tbl,
++            targets_coords=targets_coords,
++            interpolation_method='SH',
++            subject_id='test_subj',
++            num_repetitions=2,
++            num_repetitions_motor=2,
++            num_grid_points=1,
++            verbose=False,
++            convention='barumerli2023pge',
++        )
++
++    assert result['success'] is True
++    assert result['convention'] == 'barumerli2023pge'
++    assert result['sigma_spectral'] == pytest.approx(2.0)
++
++
+ def test_fit_listener_bounds_ordering(fitting_data):
+     """Verify BADS is called with strictly ordered bounds (lb < plb < pub < ub)."""
+     sofa_path, obs_tbl, targets_coords = fitting_data
