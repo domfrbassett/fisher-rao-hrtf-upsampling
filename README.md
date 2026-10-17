@@ -151,10 +151,53 @@ Outputs: `results/evaluation/analysis/template_matched_rows.csv` (per subject x 
 retention level) and `template_matched_summary.csv` (medians over subjects), each for all cues and
 separately for spectral and interaural cues. The tensor files themselves are not tracked.
 
-### 5. Paper
+### 5. Boundary check
+
+The SONICOM grid has no directions below -45 deg elevation, so the order-6 SH fit is unconstrained
+there. Two scripts check whether this edge distorts the results:
+
+```bash
+python scripts/boundary_sensitivity.py results/evaluation   # needs the tensor files
+cd scripts/cue_fields && python boundary_raw_vs_sh.py        # needs reference_cues.npz (step 3)
+```
+
+The first recomputes every mean AIRM over all directions, without the -45 deg ring and without the
+-45 and -30 deg rings (`analysis/boundary_sensitivity_*.csv`). The second compares the reference
+tensors ring by ring with finite differences of the measured cues
+(`analysis/cue_fields/boundary_raw_vs_sh.csv`). The elevation component of the reference tensor on
+the -45 deg ring is inflated by the fit: it is 3.5 times that on the -30 deg ring, whereas the
+measured cues change less between -45 and -30 deg than between -30 and -20 deg (ratio 0.6). The
+azimuth component agrees with the measured cues (ratios 1.27 and 1.20).
+Excluding the ring changes cohort mean AIRM by at most 9% (14% without both rings) and leaves every
+method ranking and every sign of the scale error unchanged.
+
+### 6. Paper
 
 ```powershell
 paper/build_paper.ps1          # or: cd paper; latexmk -pdf Fisher_Rao_HRTF_Evaluation.tex
+```
+
+## Local data (not in git)
+
+The evaluation reads and writes large files that git ignores. In a working copy they sit inside the
+project folder:
+
+```
+dependencies/                        toolboxes and SONICOM SOFA files (EXTERNAL_DEPENDENCIES.md)
+ml_sofas_without_node_replacement/   RANF and FSP-AE test fields, <METHOD>/N###/Sonicom_<id>.sofa
+results/evaluation/metric_tensors/   tensor files behind results/evaluation/full_evaluation_summary.csv,
+                                     one folder per subject, copied from the worker named in its
+                                     sourceWorker column
+results/evaluation_w1 ... w15/       the parallel "full" runs (signal, Fisher, observer) merged into
+                                     results/evaluation; where a subject was re-run, only the later
+                                     worker's copy is used
+results/evaluation_tensors_w1 ... w4/  "tensors" runs: the same tensors plus the cross terms read by
+                                     scripts/template_matched_sensitivity.py
+results/evaluation_sequential/       "fisher" run of all 984 rows without the observer; its signal
+                                     and Fisher values are identical to the reported ones
+results/evaluation_smoke/            smoke run (subject 10, 20 observer repetitions), made before the
+                                     closed-hull check for SUpDEq-Bary was added
+results/evaluation/analysis/cue_fields/reference_cues.npz   cached cue fields (step 3)
 ```
 
 ## Licence
