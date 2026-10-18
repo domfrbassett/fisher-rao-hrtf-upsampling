@@ -99,10 +99,10 @@ Diagonal feature noise does not make the spatial tensor diagonal. For diagonal \
 which is generally nonzero because cue gradients need not align with the tangent axes. Setting \(g_{12}=0\) would force the discrimination ellipses to remain axis-aligned, which is precisely the assumption that Starch's ellipses embodied and that Carlile et al.'s Kent distributions contradict. The analysis therefore retains the full tensor.
 
 Because the tensor is built from the spatial derivatives of the cue field, it captures properties that direction-by-direction error measures do not. A reconstruction can match the reference HRTF closely at each direction while distorting how the cues change between directions, so reconstructions with similar spectral error can produce different Fisher tensors. Reference and reconstructed tensors are compared using the affine-invariant Riemannian metric (AIRM) on symmetric positive-definite matrices, which reflects differences in the size, shape, and orientation of the local discrimination ellipses. The resulting discrepancy is reported alongside signal-domain errors and Bayesian-observer simulations. Figure~\ref{fig:evaluation_pipeline} summarises the evaluation sequence.
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
     \begin{tikzpicture}[
-        node distance=3.5mm,
+        node distance=5mm,
         stage/.style={
             draw=black!65,
             fill=black!3,
@@ -112,7 +112,8 @@ Because the tensor is built from the spatial derivatives of the cue field, it ca
             inner xsep=2.5pt,
             inner ysep=3pt,
             font=\scriptsize,
-            text width=0.255\columnwidth
+            text width=0.165\textwidth,
+            minimum height=9mm
         },
         flow/.style={
             -{Latex[length=1.4mm,width=1mm]},
@@ -123,8 +124,8 @@ Because the tensor is built from the spatial derivatives of the cue field, it ca
         \node[stage] (hrtf) {\textbf{HRTF fields}\\Measured $H$ and reconstructed $\widehat H$};
         \node[stage, right=of hrtf] (cues) {\textbf{Auditory cues}\\PGE, ILD, and transformed ITD};
         \node[stage, right=of cues] (gradients) {\textbf{Spatial gradients}\\Tangent Jacobians $\mathbf J$ and $\widehat{\mathbf J}$};
-        \node[stage, below=5mm of gradients] (tensors) {\textbf{Fisher tensors}\\$\mathbf g=\mathbf J^T\boldsymbol\Sigma^{-1}\mathbf J$ and $\widehat{\mathbf g}$};
-        \node[stage, left=of tensors] (comparison) {\textbf{Tensor comparison}\\AIRM $d_{\mathrm{AIRM}}(\mathbf g,\widehat{\mathbf g})$};
+        \node[stage, right=of gradients] (tensors) {\textbf{Fisher tensors}\\$\mathbf g=\mathbf J^T\boldsymbol\Sigma^{-1}\mathbf J$ and $\widehat{\mathbf g}$};
+        \node[stage, right=of tensors] (comparison) {\textbf{Tensor comparison}\\AIRM $d_{\mathrm{AIRM}}(\mathbf g,\widehat{\mathbf g})$};
 
         \draw[flow] (hrtf) -- (cues);
         \draw[flow] (cues) -- (gradients);
@@ -133,7 +134,7 @@ Because the tensor is built from the spatial derivatives of the cue field, it ca
     \end{tikzpicture}
     \caption{Overview of the proposed evaluation. Measured and reconstructed HRTF fields are transformed into auditory cue fields, differentiated spatially, and compared through their Fisher tensors.}
     \label{fig:evaluation_pipeline}
-\end{figure}
+\end{figure*}
 
 \section{Cue Feature Extraction}\label{sec:cues}
 Let \(\mathbf{r}=[r_x,r_y,r_z]^T\in\mathbb{S}^{2}\) be a unit source direction. For ear \(c\in\{L,R\}\), let \(A_c(f_k,\mathbf{r})\) and \(\widehat{A}_c(f_k,\mathbf{r})\) denote the target and reconstructed HRTF magnitudes at frequency bin \(f_k\), and \(D_c\), \(\widehat D_c\) the corresponding directional transfer function (DTF) magnitudes, obtained by the same common-transfer-function (CTF) removal (SOFA \path{SOFAhrtf2dtf}, log-magnitude average) applied separately to each field. The CTF is direction-independent and carries no spatial information, so the spectral and level cues are computed from DTFs; raw HRTF magnitudes are retained for the signal-domain metrics.
@@ -395,6 +396,7 @@ The tensor also suggests a training objective: a penalty on the spatial Jacobian
 
 In conclusion, local cue sensitivity provides an evaluation criterion for HRTF reconstruction that is distinct from spectral fidelity and predicted localisation error. Fisher information makes this criterion quantitative, interpretable as discrimination thresholds, and comparable across methods and sparsity levels. The released code (\url{https://github.com/domfrbassett/fisher-rao-hrtf-upsampling}) computes the tensors and all reported summaries from the reconstructed HRIRs, so that the criterion can be applied to other upsampling methods; the tensors are archived at \href{https://doi.org/10.5281/zenodo.23439154}{doi:10.5281/zenodo.23439154}.
 
+\noindent\textit{Acknowledgment:} Claude (Anthropic) assisted with code refactoring and text editing; the author is responsible for all content.
 \FloatBarrier
 \begingroup
 \footnotesize
