@@ -5,7 +5,7 @@ HRTF Upsampling Using Fisher Information*.
 
 ![Median CRB ellipses](paper/figures/median_crb_ellipses.png)
 
-Signal-domain metrics compare each reconstructed HRTF with the measured one at the same direction. Localisation models predict where a listener would point when presented with the reconstruction, using templates learned from their measured HRTFs. Neither directly assesses whether the reconstruction preserves the listener's ability to tell neighbouring directions apart, which depends on how the auditory cues change from one direction to the next. 
+Signal-domain metrics compare each reconstructed HRTF with the measured one at the same direction. Localisation models predict where a listener would point when presented with the reconstruction, inferring the source direction from templates learned from their measured HRTFs. Neither directly assesses whether the reconstruction preserves the listener's ability to tell neighbouring directions apart, which depends on how the auditory cues change from one direction to the next.
 
 This project measures that directly: the Fisher information of the auditory cues defines a local discrimination ellipse at every direction, and reference and reconstructed HRTFs are compared by the size, shape and orientation of those ellipses (affine-invariant Riemannian metric, AIRM).
 
