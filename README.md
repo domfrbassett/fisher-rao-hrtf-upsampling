@@ -5,12 +5,9 @@ HRTF Upsampling Using Fisher Information*.
 
 ![Median CRB ellipses](paper/figures/median_crb_ellipses.png)
 
-Signal-domain errors describe how a reconstructed HRTF differs from the measured one, and
-localisation models predict where a listener would point, but neither shows whether a listener can
-still tell neighbouring source directions apart. This project measures that directly: the Fisher
-information of the auditory cues defines a local discrimination ellipse at every direction, and
-reference and reconstructed HRTFs are compared by the size, shape and orientation of those ellipses
-(affine-invariant Riemannian metric, AIRM).
+Signal-domain metrics compare each reconstructed HRTF with the measured one at the same direction. Localisation models predict where a listener would point when presented with the reconstruction, using templates learned from their measured HRTFs. Neither directly assesses whether the reconstruction preserves the listener's ability to tell neighbouring directions apart, which depends on how the auditory cues change from one direction to the next. 
+
+This project measures that directly: the Fisher information of the auditory cues defines a local discrimination ellipse at every direction, and reference and reconstructed HRTFs are compared by the size, shape and orientation of those ellipses (affine-invariant Riemannian metric, AIRM).
 
 This work builds on the research of Pavão et al., "Natural ITD statistics predict human auditory spatial perception" (*eLife*, 2020), which related Fisher information derived from HRTF statistics to human spatial perception, and on the Bayesian localisation modelling of Barumerli et al., "A Bayesian model for human directional localisation of broadband static sound sources" (*Acta Acustica*, 2023) and "Statistical validation and full-sphere extension of a Bayesian model for human static sound localisation" (*Acta Acustica*, 2026).
 
@@ -51,7 +48,7 @@ requirements.txt             Python packages for scripts/
   41 held-out subjects, retention levels N = 100, 19, 5 and 3 directions.
 - Methods: SUpDEq-SH, SUpDEq-MCA, SUpDEq-Natural-MCA, SUpDEq-Bary-MCA, RANF and FSP-AE. RANF and
   FSP-AE are evaluated on their complete model-generated fields, without retained-node replacement.
-- Common 16 kHz cue band: every field, reference and reconstructed, is low-passed with the same
+- Common 16 kHz low-pass filtering: every field, reference and reconstructed, is low-passed with the same
   linear-phase FIR before feature extraction, and the gammatone filterbank stops at 16 kHz. This
   applies to the Fisher cues and to the Bayesian observer. LSD is reported over 20 Hz to 16 kHz for
   every method (FSP-AE has no output above 16 kHz).
