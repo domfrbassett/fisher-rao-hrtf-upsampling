@@ -222,5 +222,6 @@ licence.
 
 ## Data access
 
-SONICOM HRTFs, the toolboxes and the comparator model repositories should be obtained from their
-original sources. The Fisher information tensors are on Zenodo, [10.5281/zenodo.23439154](https://doi.org/10.5281/zenodo.23439154) (CC BY 4.0). Questions about the evaluation protocol can be directed to the author.
+The SONICOM HRTFs, the toolboxes and the comparator model repositories should be obtained from their original sources. The Fisher information tensors are archived on Zenodo at [10.5281/zenodo.23439154](https://doi.org/10.5281/zenodo.23439154) under CC BY 4.0.
+
+Questions about the evaluation protocol are welcome; please open an issue or contact the author. I'm happy to help make the method as straightforward as possible to apply to other upsampling methods.
