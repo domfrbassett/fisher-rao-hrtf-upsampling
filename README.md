@@ -7,7 +7,7 @@ HRTF Upsampling Using Fisher Information*.
 
 Signal-domain metrics compare each reconstructed HRTF with the measured one at the same direction. Localisation models predict where a listener would point when presented with the reconstruction, inferring the source direction from templates learned from their measured HRTFs. Neither directly assesses whether the reconstruction preserves the listener's ability to tell neighbouring directions apart, which depends on how the auditory cues change from one direction to the next.
 
-This project measures that directly: the Fisher information of the auditory cues defines a local discrimination ellipse at every direction, and reference and reconstructed HRTFs are compared by the size, shape and orientation of those ellipses (affine-invariant Riemannian metric, AIRM).
+At every direction, the Fisher information of the auditory cues with respect to source direction gives a tensor that defines a local discrimination ellipse. Comparing the tensors of the measured and reconstructed HRTFs shows how far the reconstruction preserves that ellipse.
 
 This work builds on the research of Pavão et al., "Natural ITD statistics predict human auditory spatial perception" (*eLife*, 2020), which related Fisher information derived from HRTF statistics to human spatial perception, and on the Bayesian localisation modelling of Barumerli et al., "A Bayesian model for human directional localisation of broadband static sound sources" (*Acta Acustica*, 2023) and "Statistical validation and full-sphere extension of a Bayesian model for human static sound localisation" (*Acta Acustica*, 2026).
 
