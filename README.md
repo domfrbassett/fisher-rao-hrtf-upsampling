@@ -12,6 +12,8 @@ information of the auditory cues defines a local discrimination ellipse at every
 reference and reconstructed HRTFs are compared by the size, shape and orientation of those ellipses
 (affine-invariant Riemannian metric, AIRM).
 
+This work builds on the research of Pavão et al., "Natural ITD statistics predict human auditory spatial perception" (*eLife*, 2020), which related Fisher information derived from HRTF statistics to human spatial perception, and on the Bayesian localisation modelling of Barumerli et al., "A Bayesian model for human directional localisation of broadband static sound sources" (*Acta Acustica*, 2023) and "Statistical validation and full-sphere extension of a Bayesian model for human static sound localisation" (*Acta Acustica*, 2026).
+
 The compiled paper is [`paper/Fisher_Rao_HRTF_Evaluation.pdf`](paper/Fisher_Rao_HRTF_Evaluation.pdf).
 
 ## Repository layout
