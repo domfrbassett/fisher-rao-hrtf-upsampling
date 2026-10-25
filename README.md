@@ -3,6 +3,8 @@
 Code, results and manuscript for the paper *Evaluating Spatial Discriminability Preservation in
 HRTF Upsampling Using Fisher Information*.
 
+![Median CRB ellipses](paper/figures/median_crb_ellipses.png)
+
 Signal-domain errors describe how a reconstructed HRTF differs from the measured one, and
 localisation models predict where a listener would point, but neither shows whether a listener can
 still tell neighbouring source directions apart. This project measures that directly: the Fisher
